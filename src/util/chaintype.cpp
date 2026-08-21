@@ -27,15 +27,15 @@ std::string ChainTypeToString(ChainType chain)
 
 std::optional<ChainType> ChainTypeFromString(std::string_view chain)
 {
-    if (chain == "main") {
+    if (chain == "main" || chain == "bitfuc-main" || chain == "bitfuc") {
         return ChainType::MAIN;
-    } else if (chain == "test") {
+    } else if (chain == "test" || chain == "bitfuc-test") {
         return ChainType::TESTNET;
     } else if (chain == "testnet4") {
         return ChainType::TESTNET4;
     } else if (chain == "signet") {
         return ChainType::SIGNET;
-    } else if (chain == "regtest") {
+    } else if (chain == "regtest" || chain == "bitfuc-regtest") {
         return ChainType::REGTEST;
     } else {
         return std::nullopt;

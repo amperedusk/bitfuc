@@ -168,7 +168,7 @@ static constexpr int MIN_CORE_FDS = MIN_LEVELDB_FDS + NUM_FDS_MESSAGE_CAPTURE;
 /**
  * The PID file facilities.
  */
-static const char* BITCOIN_PID_FILENAME = "bitcoind.pid";
+static const char* BITCOIN_PID_FILENAME = "bitfucd.pid";
 /**
  * True if this process has created a PID file.
  * Used to determine whether we should remove the PID file on shutdown.
@@ -921,6 +921,14 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     const CChainParams& chainparams = Params();
     // ********************************************************* Step 2: parameter interactions
 
+    ChainType chain = args.GetChainType();
+    if (chain == ChainType::MAIN) {
+        return InitError(_("BITFUC mainnet genesis is not frozen and must not be mined. Use -regtest (or -chain=bitfuc-regtest) for local development, or -testnet for the unpublished test chain. See docs/open-decisions.md and docs/launch.md."));
+    }
+    if (chain == ChainType::SIGNET || chain == ChainType::TESTNET4) {
+        return InitError(_("BITFUC does not provide Bitcoin signet or testnet4. Use -regtest or -testnet."));
+    }
+
     // also see: InitParameterInteraction()
 
     // We removed checkpoints but keep the option to warn users who still have it in their config.
@@ -937,7 +945,6 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     // Error if network-specific options (-addnode, -connect, etc) are
     // specified in default section of config file, but not overridden
     // on the command line or in this chain's section of the config file.
-    ChainType chain = args.GetChainType();
     if (chain == ChainType::SIGNET) {
         LogInfo("Signet derived magic (message start): %s", HexStr(chainparams.MessageStart()));
     }
@@ -950,10 +957,7 @@ bool AppInitParameterInteraction(const ArgsManager& args)
         return InitError(errors);
     }
 
-    // Testnet3 deprecation warning
-    if (chain == ChainType::TESTNET) {
-        LogInfo("Warning: Support for testnet3 is deprecated and will be removed in an upcoming release. Consider switching to testnet4.\n");
-    }
+    // Testnet is BITFUC testnet (TEST COINS — NO VALUE). Bitcoin testnet3 deprecation does not apply.
 
     // Warn if unrecognized section name are present in the config file.
     bilingual_str warnings;

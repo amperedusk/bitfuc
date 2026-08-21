@@ -12,6 +12,7 @@
 *.pyc
 __pycache__/
 .venv/
+.tools-venv/
 
 # Only ignore unexpected patches
 *.patch

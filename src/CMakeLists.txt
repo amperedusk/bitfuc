@@ -169,6 +169,7 @@ if(ENABLE_WALLET)
       Boost::headers
     )
     install_binary_component(bitcoin-wallet HAS_MANPAGE)
+    set_target_properties(bitcoin-wallet PROPERTIES OUTPUT_NAME bitfuc-wallet)
   endif()
 endif()
 
@@ -302,6 +303,7 @@ if(BUILD_BITCOIN_BIN)
   add_windows_application_manifest(bitcoin)
   target_link_libraries(bitcoin core_interface bitcoin_common bitcoin_util)
   install_binary_component(bitcoin HAS_MANPAGE)
+  set_target_properties(bitcoin PROPERTIES OUTPUT_NAME bitfuc)
 endif()
 
 # Bitcoin Core bitcoind.
@@ -318,6 +320,7 @@ if(BUILD_DAEMON)
     $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
   install_binary_component(bitcoind HAS_MANPAGE)
+  set_target_properties(bitcoind PROPERTIES OUTPUT_NAME bitfucd)
 endif()
 if(ENABLE_IPC AND BUILD_DAEMON)
   add_executable(bitcoin-node
@@ -331,6 +334,7 @@ if(ENABLE_IPC AND BUILD_DAEMON)
     $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
   install_binary_component(bitcoin-node INTERNAL)
+  set_target_properties(bitcoin-node PROPERTIES OUTPUT_NAME bitfuc-node)
 endif()
 
 
@@ -359,6 +363,7 @@ if(BUILD_CLI)
     libevent::extra
   )
   install_binary_component(bitcoin-cli HAS_MANPAGE)
+  set_target_properties(bitcoin-cli PROPERTIES OUTPUT_NAME bitfuc-cli)
 endif()
 
 
@@ -373,6 +378,7 @@ if(BUILD_TX)
     univalue
   )
   install_binary_component(bitcoin-tx HAS_MANPAGE)
+  set_target_properties(bitcoin-tx PROPERTIES OUTPUT_NAME bitfuc-tx)
 endif()
 
 
@@ -386,6 +392,7 @@ if(BUILD_UTIL)
     bitcoin_util
   )
   install_binary_component(bitcoin-util HAS_MANPAGE)
+  set_target_properties(bitcoin-util PROPERTIES OUTPUT_NAME bitfuc-util)
 endif()
 
 
@@ -410,6 +417,7 @@ if(BUILD_KERNEL_LIB)
         bitcoinkernel
     )
     install_binary_component(bitcoin-chainstate INTERNAL)
+    set_target_properties(bitcoin-chainstate PROPERTIES OUTPUT_NAME bitfuc-chainstate)
   endif()
 endif()
 

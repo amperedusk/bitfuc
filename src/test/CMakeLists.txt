@@ -16,6 +16,7 @@ add_executable(test_bitcoin
   base58_tests.cpp
   base64_tests.cpp
   bech32_tests.cpp
+  bitfuc_identity_tests.cpp
   bip32_tests.cpp
   bip324_tests.cpp
   blockchain_tests.cpp

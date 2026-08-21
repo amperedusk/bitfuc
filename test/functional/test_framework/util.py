@@ -319,14 +319,14 @@ def get_binary_paths(config):
 
     paths = types.SimpleNamespace()
     binaries = {
-        "bitcoin": "BITCOIN_BIN",
-        "bitcoind": "BITCOIND",
+        "bitfuc": "BITCOIN_BIN",
+        "bitfucd": "BITCOIND",
         "bench_bitcoin": "BITCOIN_BENCH",
-        "bitcoin-cli": "BITCOINCLI",
-        "bitcoin-util": "BITCOINUTIL",
-        "bitcoin-tx": "BITCOINTX",
-        "bitcoin-chainstate": "BITCOINCHAINSTATE",
-        "bitcoin-wallet": "BITCOINWALLET",
+        "bitfuc-cli": "BITCOINCLI",
+        "bitfuc-util": "BITCOINUTIL",
+        "bitfuc-tx": "BITCOINTX",
+        "bitfuc-chainstate": "BITCOINCHAINSTATE",
+        "bitfuc-wallet": "BITCOINWALLET",
     }
     # Set paths to bitcoin core binaries allowing overrides with environment
     # variables.

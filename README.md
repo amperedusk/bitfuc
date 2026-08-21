@@ -12,9 +12,19 @@ BITFUC is a Bitcoin Core **v31.1** derivative with an independent network identi
 
 ## Status (honest)
 
-**Phase 1 — chain prototype (in progress).**
+**Phase 1 — chain prototype.**
 
-This repository contains the Bitcoin Core v31.1 source tree plus BITFUC documentation. Until the identity rebrand lands and `bitfucd -regtest` runs, there is no independent BITFUC network yet.
+This tree is Bitcoin Core v31.1 with BITFUC network identity. `bitfucd -regtest` is the development network. **Mainnet is not launched:** the daemon refuses `-chain=main`.
+
+Build (after installing CMake ≥ 3.22, Boost, libevent; or `make -C depends NO_QT=1 NO_IPC=1`):
+
+```bash
+cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
+cmake --build build --target bitcoind bitcoin-cli
+# binaries: build/bin/bitfucd  build/bin/bitfuc-cli
+./build/bin/bitfucd -regtest -daemon
+./build/bin/bitfuc-cli -regtest getblockchaininfo
+```
 
 There are no fake balances, fake blocks, or fake markets in this tree.
 
