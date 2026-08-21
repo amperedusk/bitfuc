@@ -1,28 +1,42 @@
-# OS / editor
-.DS_Store
-*.swp
-*~
-.idea/
-.vscode/
-*.code-workspace
+# Patterns that are specific to a text editor, IDE, operating system, or user
+# environment are not added here. They should be added to your local gitignore
+# file instead:
+# https://docs.github.com/en/get-started/git-basics/ignoring-files#configuring-ignored-files-for-all-repositories-on-your-computer
 
-# Build trees (Bitcoin Core / CMake convention)
-/build*/
+# Build subdirectories.
+/*build*
+!/build-aux
+!/build_msvc
 /cmake-build-*/
 
-# Python
-__pycache__/
 *.pyc
+__pycache__/
 .venv/
+
+# Only ignore unexpected patches
+*.patch
+!ci/test/*.patch
+!contrib/guix/patches/*.patch
+!depends/patches/**/*.patch
+
+/CMakeUserPresets.json
+
+# Previous releases
+/releases
+
+# cargo default target dir
+target/
+
+/guix-build-*
+
+/ci/scratch/
 
 # Node / website later
 node_modules/
 
 # Secrets — never commit
-*.pem
-*.key
 .env
 .env.*
-wallet.dat
 *.cookie
 oauth.token
+wallet.dat
