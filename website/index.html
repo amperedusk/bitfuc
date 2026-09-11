@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BITFUC — Working paper</title>
+  <meta name="description" content="BITFUC is a Bitcoin Core v31.1 derivative. Mainnet is not launched. This website is not a wallet or an offering.">
+  <link rel="stylesheet" href="css/bitfuc.css">
+  <link rel="icon" href="img/fuc-coin.png">
+</head>
+<body>
+<script src="js/banner.js"></script>
+<main class="page">
+  <p class="doc-kicker">Document 00 · Overview</p>
+  <h2>An independent UTXO network with a frivolous name</h2>
+  <p class="meta">Ticker FUC · Classification: experimental software · Date: 2026-09-06</p>
+
+  <div class="abstract">
+    <strong>Abstract.</strong>
+    BITFUC is a Bitcoin Core <b>v31.1</b> derivative with its own genesis, P2P magic, ports, address prefixes, and datadir.
+    The branding is a joke. The validation engine is not. This page does not quote a price, a float, or a user count.
+    Those figures do not exist in any honest sense.
+  </div>
+
+  <div class="warn">
+    <strong>Status (not a forecast).</strong>
+    Local <code>bitfuc-regtest</code> functions: three nodes, mine, transfer, restart, resync.
+    <code>bitfuc-test</code> is a <b>public test</b> chain in the software (<b>TEST COINS — NO VALUE</b>);
+    there is no required official peer. <b>Mainnet is not launched</b> — <code>bitfucd</code> refuses <code>-chain=main</code>.
+    There is no issuer, no subscription, and no secondary market disclosed here.
+  </div>
+
+  <h3>Scope of this website</h3>
+  <ul>
+    <li>It is a brochure. It is not the ledger.</li>
+    <li>It will not collect seed phrases or keys.</li>
+    <li>It will not fabricate volume, listings, capitalization, or visitors.</li>
+    <li>It will not describe BITFUC as “the next Bitcoin” or an investment program.</li>
+  </ul>
+
+  <h3>Networks</h3>
+  <table class="stats">
+    <tr><th>Instrument / chain</th><th>Operational status</th></tr>
+    <tr><td>bitfuc-regtest</td><td>Real, local only. See <a href="node.html">Node</a>.</td></tr>
+    <tr><td>bitfuc-test</td><td>Public test identity. <b>NO VALUE.</b> Empty seeds; see <a href="network.html">Network</a>.</td></tr>
+    <tr><td>bitfuc-main</td><td>Genesis not frozen. Process will not start.</td></tr>
+  </table>
+
+  <p class="links"><a href="whitepaper.html">Whitepaper</a> · <a href="testnet.html">Testnet</a> · <a href="how.html">Protocol notes</a> · <a href="download.html">Build from source</a> · <a href="legal.html">Notice</a></p>
+</main>
+<script src="js/footer.js"></script>
+</body>
+</html>

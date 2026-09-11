@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BITFUC — Explorer</title>
+  <link rel="stylesheet" href="css/bitfuc.css">
+  <link rel="icon" href="img/fuc-coin.png">
+</head>
+<body>
+<script src="js/banner.js"></script>
+<main class="page">
+  <p class="doc-kicker">Document 05 · Disclosure</p>
+  <h2>No public index</h2>
+  <div class="warn">
+    <strong>No backend.</strong>
+    This deployment is static. It does not run <code>bitfucd</code>.
+    There is no public indexer. Mainnet is not launched.
+    Displaying a height or “latest hash” here would be fabricated.
+  </div>
+  <p>Inspect a tip you control:</p>
+<pre>bitfuc-cli -regtest getblockchaininfo
+bitfuc-cli -regtest getbestblockhash</pre>
+  <p>Regtest genesis (must match <code>docs/genesis.md</code>):</p>
+  <pre>36dd99e42f28638b0c4c26c43c4c57ec9edba5fb713011b0795df00d067329d5</pre>
+  <p>A public explorer is a later phase: a process bound to live RPC / <code>txindex</code>, not a client-side simulation.</p>
+</main>
+<script src="js/footer.js"></script>
+</body>
+</html>

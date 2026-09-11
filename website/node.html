@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BITFUC — Node</title>
+  <link rel="stylesheet" href="css/bitfuc.css">
+  <link rel="icon" href="img/fuc-coin.png">
+</head>
+<body>
+<script src="js/banner.js"></script>
+<main class="page">
+  <p class="doc-kicker">Document 03 · Node</p>
+  <h2>Independent verification</h2>
+  <p><code>bitfucd</code> is the system of record. If this website is withdrawn, a public chain (when one exists) does not depend on it.</p>
+<pre>cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
+cmake --build build --target bitcoind bitcoin-cli
+./build/bin/bitfucd -regtest -daemon
+./build/bin/bitfuc-cli -regtest getblockchaininfo</pre>
+  <p>CMake targets remain <code>bitcoind</code> / <code>bitcoin-cli</code>; output names are BITFUC. Datadir is not Bitcoin’s (macOS: <code>~/Library/Application Support/Bitfuc</code>).</p>
+  <p>Three-node acceptance: <code>./scripts/regtest/acceptance.sh</code> — <code>docs/regtest.md</code>.</p>
+  <div class="box">Regtest P2P / RPC: <b>17444 / 17443</b>. Magic <code>96 79 32 83</code>. Bitcoin 18444 / 18443 unused.</div>
+  <p>Seed lists are empty by design. Regtest peers are added with <code>addnode</code>.</p>
+</main>
+<script src="js/footer.js"></script>
+</body>
+</html>

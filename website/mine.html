@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BITFUC — Mining</title>
+  <link rel="stylesheet" href="css/bitfuc.css">
+  <link rel="icon" href="img/fuc-coin.png">
+</head>
+<body>
+<script src="js/banner.js"></script>
+<main class="page">
+  <p class="doc-kicker">Document 02 · Mining</p>
+  <h2>Block production</h2>
+  <p>You mine on a node you run. This page does not produce blocks and does not pay anyone. Nothing public is live.</p>
+  <p>If you have already built the node on your computer, <code>./scripts/ui/start.sh</code> opens a local helper (buttons, not a hosted wallet). Coins stay on that machine until a public network exists.</p>
+  <h3>What is ready in the source tree</h3>
+  <p>The node already speaks <code>getblocktemplate</code> and <code>submitblock</code>. A small solo miner lives at <code>contrib/bitfuc/solo_mine.py</code>. Local setup: <code>scripts/mine/regtest-setup.sh</code>. Full notes: <code>docs/mining.md</code>.</p>
+<pre>./scripts/mine/regtest-setup.sh
+python3 contrib/bitfuc/solo_mine.py --chain regtest --address fucrt1… --blocks 1</pre>
+  <p>Addresses use <code>fucrt1</code> on regtest and <code>tfuc1</code> on the public <b>test</b> chain (<b>NO VALUE</b>), not Bitcoin <code>bcrt1</code> / <code>bc1</code>.</p>
+  <h3>What is not ready</h3>
+  <p>There is no public peer list, no pool, and no mainnet. Coinbase is spendable after 100 further blocks. Laptop SHA-256d is for development; it is not a claim about ASIC-scale security.</p>
+</main>
+<script src="js/footer.js"></script>
+</body>
+</html>

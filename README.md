@@ -12,18 +12,15 @@ BITFUC is a Bitcoin Core **v31.1** derivative with an independent network identi
 
 ## Status (honest)
 
-**Phase 1 — chain prototype.**
+**Phase 2 — local multi-node network.**
 
-This tree is Bitcoin Core v31.1 with BITFUC network identity. `bitfucd -regtest` is the development network. **Mainnet is not launched:** the daemon refuses `-chain=main`.
-
-Build (after installing CMake ≥ 3.22, Boost, libevent; or `make -C depends NO_QT=1 NO_IPC=1`):
+`bitfucd -regtest` is a real chain. Mainnet is **not** launched.
 
 ```bash
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
 cmake --build build --target bitcoind bitcoin-cli
 # binaries: build/bin/bitfucd  build/bin/bitfuc-cli
-./build/bin/bitfucd -regtest -daemon
-./build/bin/bitfuc-cli -regtest getblockchaininfo
+./scripts/regtest/acceptance.sh
 ```
 
 There are no fake balances, fake blocks, or fake markets in this tree.
@@ -35,8 +32,15 @@ There are no fake balances, fake blocks, or fake markets in this tree.
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Phases 0–8 |
 | [docs/open-decisions.md](docs/open-decisions.md) | Protocol choices that must not be made silently |
 | [docs/legal-notice.md](docs/legal-notice.md) | Experimental software; no investment promise |
+| [docs/genesis.md](docs/genesis.md) | Documented genesis hashes (mainnet NOT FROZEN) |
+| [docs/regtest.md](docs/regtest.md) | Three-node local network |
+| [docs/mining.md](docs/mining.md) | How to mine locally (not a public launch) |
+| [docs/testnet.md](docs/testnet.md) | Public test chain; TEST COINS — NO VALUE |
+| [docs/testnet-peers.md](docs/testnet-peers.md) | Optional volunteer peers (empty until someone lists one) |
+| [docs/whitepaper.md](docs/whitepaper.md) | Working paper (not a prospectus) |
+| [website/](website/) | Static 1999 homepage (not a chain) |
 
-Upstream Bitcoin Core build notes (still using Bitcoin binary names until the rebrand commit): [doc/](doc/).
+Upstream Bitcoin Core build notes live under [doc/](doc/). BITFUC binaries are `bitfucd` / `bitfuc-cli` (CMake target names remain `bitcoind` / `bitcoin-cli`).
 
 ## What this project will not do
 

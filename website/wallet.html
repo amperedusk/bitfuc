@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BITFUC — Wallet</title>
+  <link rel="stylesheet" href="css/bitfuc.css">
+  <link rel="icon" href="img/fuc-coin.png">
+</head>
+<body>
+<script src="js/banner.js"></script>
+<main class="page">
+  <p class="doc-kicker">Document 04 · Custody</p>
+  <h2>Self-hosted keys only</h2>
+  <div class="warn">
+    There is no hosted wallet, no browser extension, and no “connect account” flow.
+    A form requesting a seed phrase is theft. This site will not provide one.
+  </div>
+  <p>Keys remain in the <code>bitfucd</code> descriptor wallet on the operator’s machine.</p>
+<pre>bitfuc-cli -regtest createwallet miner
+bitfuc-cli -regtest -rpcwallet=miner getnewaddress
+bitfuc-cli -regtest -rpcwallet=miner getbalance
+bitfuc-cli -regtest -rpcwallet=miner sendtoaddress &lt;fucrt1…&gt; 10</pre>
+  <p>Use <code>backupwallet</code> when the material matters. Do not transmit backups to this host.</p>
+</main>
+<script src="js/footer.js"></script>
+</body>
+</html>

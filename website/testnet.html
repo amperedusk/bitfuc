@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BITFUC — Public testnet</title>
+  <link rel="stylesheet" href="css/bitfuc.css">
+  <link rel="icon" href="img/fuc-coin.png">
+</head>
+<body>
+<script src="js/banner.js"></script>
+<main class="page">
+  <p class="doc-kicker">Document 11 · Testnet</p>
+  <h2>bitfuc-test is a public test</h2>
+  <div class="warn">
+    <strong>TEST COINS — NO VALUE.</strong>
+    This is not mainnet. It is not money. Anyone with a laptop can rewrite this chain.
+    If one person runs every peer, the testnet is not decentralized — say so.
+  </div>
+  <p>The software already knows this network. There is <b>no required official IP</b>.
+  Two people who build <code>bitfucd</code> and <code>addnode</code> each other are the network.</p>
+
+  <h3>Identity</h3>
+  <table class="stats">
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>Genesis</td><td class="mono">21374e341b93a54c0899595c8118ade1ee4d3439a750755949167202be8aef2c</td></tr>
+    <tr><td>P2P / RPC</td><td>27333 / 27332</td></tr>
+    <tr><td>Address</td><td><code>tfuc1…</code> (not Bitcoin <code>tb1</code>)</td></tr>
+    <tr><td>Seeds</td><td>Empty. Optional volunteers: <code>docs/testnet-peers.md</code></td></tr>
+  </table>
+
+  <h3>Run a node</h3>
+<pre>./scripts/testnet/start-operator.sh
+bitfuc-cli -testnet createwallet miner
+ADDR=$(bitfuc-cli -testnet -rpcwallet=miner getnewaddress)
+python3 contrib/bitfuc/solo_mine.py --chain test --address "$ADDR" --blocks 1
+bitfuc-cli -testnet addnode "FRIEND.IP:27333" add</pre>
+  <p>Full notes: <code>docs/testnet.md</code>. Mainnet remains refused by the daemon.</p>
+</main>
+<script src="js/footer.js"></script>
+</body>
+</html>
