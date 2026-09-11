@@ -37,7 +37,10 @@ Time base: `1755788400` (2026-08-21 15:00:00 UTC).
 | P2P / RPC | 17444 / 17443 |
 | Bech32 HRP | `fucrt` |
 
-## bitfuc-test (prototype; TEST COINS — NO VALUE; not a public network yet)
+## bitfuc-test (public test identity; TEST COINS — NO VALUE)
+
+Published so operators can share one genesis. **Not money.** Changing these
+bytes later is a new testnet. Operator notes: `docs/testnet.md`.
 
 | Field | Value |
 | --- | --- |

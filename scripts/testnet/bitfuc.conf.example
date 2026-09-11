@@ -1,0 +1,15 @@
+# Example operator config. Copy to your datadir as bitfuc.conf
+# TEST COINS — NO VALUE. Not mainnet.
+
+testnet=1
+server=1
+listen=1
+bind=0.0.0.0
+port=27333
+rpcbind=127.0.0.1
+rpcallowip=127.0.0.1
+dnsseed=0
+fixedseeds=0
+listenonion=0
+fallbackfee=0.0002
+# addnode=203.0.113.10:27333

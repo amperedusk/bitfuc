@@ -97,6 +97,8 @@ Scripts under `scripts/regtest/` (Docker optional, not required):
 
 Document in `docs/regtest.md` and `docs/mining.md` (regtest section).
 
+**Status (2026-08-21):** `scripts/regtest/acceptance.sh` and `test/functional/feature_bitfuc_mesh.py` perform steps 1–8. Clone+build (acceptance 1–2) still depends on CMake ≥ 3.22 plus Boost/libevent (or `depends/`).
+
 **Exit:** project acceptance criteria 1–18 on a fresh clone of this repo.
 
 ---
@@ -109,6 +111,8 @@ Document in `docs/regtest.md` and `docs/mining.md` (regtest section).
 - Mining: `getblocktemplate` + CPU path; do not require a developer server
 - Faucet: optional, centralized, labeled **TEST COINS — NO VALUE**
 - Public claim: “testnet”, not “the BITFUC network is decentralized” if one person runs every node
+
+**Status (2026-08-22):** Identity, GBT miner, operator script, and empty peer list are in-tree. A public testnet exists as *software + docs*, not as a developer-run required server. Phase 3 exit is two machines with matching tips — that needs humans, not this repo.
 
 **Exit:** two independent machines, two operators if possible, same tip after sync.
 

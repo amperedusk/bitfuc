@@ -37,6 +37,8 @@ Nothing in this file is consensus. Defaults below are for discussion.
 
 **Phase 1 action:** inherit SHA-256d; do not change `src/pow.cpp` algorithm.
 
+**Testnet (2026-08-22):** public `bitfuc-test` uses SHA-256d as already shipped. That is a *test* choice so `getblocktemplate` works. It does **not** freeze D1 for mainnet. Test coins have no value; a laptop can rewrite the test chain.
+
 ---
 
 ## D2. Difficulty adjustment
@@ -60,6 +62,8 @@ Nothing in this file is consensus. Defaults below are for discussion.
 - Must not be enabled on mainnet.
 
 **Recommendation:** Option A on **regtest** (upstream). Option C on **testnet**. Option B **strongly preferred** for mainnet if SHA-256d is kept. Do not implement Option B until this decision is explicit.
+
+**Testnet (2026-08-22):** Option C is what `CTestNetParams` already does (`fPowAllowMinDifficultyBlocks = true`, easy `powLimit`). Documented as the public test rule. Mainnet must not copy this.
 
 ---
 
