@@ -11,4 +11,4 @@ Format: `host:27333` plus who runs it (optional).
 | --- | --- |
 | *(none yet)* | Add a row if you keep a node reachable |
 
-Do not list RPC ports. Do not list mainnet (there is no mainnet).
+Do not list RPC ports. Public-chain peers belong in `docs/mainnet-peers.md`.

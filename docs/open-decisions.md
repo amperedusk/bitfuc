@@ -80,41 +80,32 @@ If anyone wants a spendable genesis output, stop: that is a premine and must be 
 
 ## D5. Address format
 
-**Must decide before any wallet is used on a public net.**
+**Decided (2026-09-15):** native SegWit with unique HRPs. Default
+`getnewaddress` is `fuc1…` / `tfuc1…` / `fucrt1…`.
 
-| Network | Bech32 HRP (proposal) | Base58 |
+| Network | Bech32 HRP | Notes |
 | --- | --- | --- |
-| bitfuc-main | `fuc` | version bytes unused by Bitcoin; prefer P2PKH starting with `F` if a collision-free version exists |
-| bitfuc-test | `tfuc` | distinct from Bitcoin testnet `m`/`n`/`2`/`tb` |
-| bitfuc-regtest | `fucrt` | distinct from `bcrt` |
+| bitfuc-main | `fuc` | not `bc` |
+| bitfuc-test | `tfuc` | not `tb` |
+| bitfuc-regtest | `fucrt` | not `bcrt` |
 
-Tests must prove Bitcoin Core will not accept BITFUC addresses as Bitcoin, and vice versa.
-
-xpub/xprv version bytes must not be Bitcoin `xpub`/`xprv` on mainnet.
-
-**Recommendation:** native SegWit (`fuc1…`) as default `getnewaddress` type, matching Bitcoin Core’s current default, with unique HRP.
+xpub/xprv version bytes are not Bitcoin `xpub`/`xprv` (`src/kernel/chainparams.cpp`).
+Tests: `src/test/bitfuc_identity_tests.cpp`.
 
 ---
 
 ## D6. Extra Bitcoin networks (signet, testnet4)
 
-Bitcoin Core 31.1 has testnet3 (deprecated), testnet4, signet, regtest, main.
-
-**Recommendation:** ship **three** BITFUC chains only: main, test, regtest. Remove or disable Bitcoin signet/testnet4 so a flag cannot connect to Bitcoin signet. Do not operate a BITFUC signet until there is a documented challenge key policy (signet challenge keys are a form of centralized block signing).
+**Decided (2026-09-15):** three BITFUC chains only — main, test, regtest.
+`-signet` and `-testnet4` `InitError` so a flag cannot join Bitcoin signet.
+No BITFUC signet (challenge keys would be centralized block signing).
 
 ---
 
 ## D7. How to import Bitcoin Core
 
-### Option A — Git history from tag `v31.1`
-
-`git fetch` the official tag; branch from it; BITFUC commits on top. Best for blame and license provenance.
-
-### Option B — Snapshot copy without git history
-
-Simpler looking repo; worse provenance.
-
-**Recommendation:** Option A. This repo starts empty, so the first implementation commit after Phase 0 docs should be the v31.1 tree (or a merge of that tag).
+**Done:** Option A. This tree is Bitcoin Core `v31.1` (`9be056a8`) merged as
+the node baseline, with BITFUC commits on top.
 
 ---
 

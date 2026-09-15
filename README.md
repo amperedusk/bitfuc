@@ -29,7 +29,10 @@ There are no fake balances, fake blocks, or fake markets in this tree.
 | [docs/mining.md](docs/mining.md) | How to mine |
 | [docs/pow.md](docs/pow.md) | RandomX + ASERT |
 | [docs/testnet.md](docs/testnet.md) | Public test chain; TEST COINS — NO VALUE |
-| [docs/testnet-peers.md](docs/testnet-peers.md) | Optional volunteer peers (empty until someone lists one) |
+| [docs/testnet-peers.md](docs/testnet-peers.md) | Optional testnet volunteers (empty until someone lists one) |
+| [docs/mainnet.md](docs/mainnet.md) | Public chain operator path |
+| [docs/mainnet-peers.md](docs/mainnet-peers.md) | Optional mainnet volunteers (empty until two independent hosts) |
+| [docs/reproducible-builds.md](docs/reproducible-builds.md) | cmake flags and SHA-256 records |
 | [docs/monetary-policy.md](docs/monetary-policy.md) | 1e9 FUC cap, 2-minute blocks, 0.010 bit/vB fees, 2% fee burn |
 | [docs/wallet.md](docs/wallet.md) | Descriptor wallet in `bitfucd` (no web wallet) |
 | [docs/whitepaper.md](docs/whitepaper.md) | Working paper (not a prospectus) |

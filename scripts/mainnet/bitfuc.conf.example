@@ -1,0 +1,14 @@
+# Example public-node config. Copy to your datadir as bitfuc.conf
+# RPC stays on loopback. P2P is the only public port.
+
+server=1
+listen=1
+bind=0.0.0.0
+port=17333
+rpcbind=127.0.0.1
+rpcallowip=127.0.0.1
+dnsseed=0
+fixedseeds=0
+listenonion=0
+fallbackfee=0.0002
+# addnode=203.0.113.10:17333

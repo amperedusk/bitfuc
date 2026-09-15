@@ -38,7 +38,7 @@ fi
 GENESIS="$("$BITFUCCLI" -testnet -datadir="$DATADIR" getblockhash 0)"
 HEIGHT="$("$BITFUCCLI" -testnet -datadir="$DATADIR" getblockcount)"
 echo "height=$HEIGHT genesis=$GENESIS"
-if [[ "$GENESIS" != "21374e341b93a54c0899595c8118ade1ee4d3439a750755949167202be8aef2c" ]]; then
+if [[ "$GENESIS" != "c0bc9ac6fb04993e0927a6a65ca60cec5c4e6e1bdb0379d3d481a8d91a70e053" ]]; then
   echo "error: unexpected genesis (not published bitfuc-test)" >&2
   exit 1
 fi

@@ -74,14 +74,12 @@ bitfuc-cli -regtest -datadir /tmp/bitfuc-mine-regtest \
 ```
 
 A miner builds a block, finds a header whose **current** puzzle digest is
-under the target, and calls `submitblock`. Today that digest is SHA-256d.
-Public nets are decided as RandomX (`docs/pow.md`); this script will change
-with that patch. `contrib/bitfuc/solo_mine.py` is the loop for BITFUC
-addresses (`fucrt1…` / `tfuc1…`), not Bitcoin `bc1`.
+under the target, and calls `submitblock`. Public nets check RandomX
+(`docs/pow.md`). `contrib/bitfuc/solo_mine.py` grinds SHA-256d on **regtest**
+only. Public chain: `docs/mainnet.md`.
 
-External SHA-256d software (cgminer, bfgminer, …) can work **only if** it is
-aimed at this node’s RPC **and** the chain is still SHA-256d. Bitcoin mainnet
-stratum is the wrong network. Do not merge-mine.
+External SHA-256d software (cgminer, bfgminer, …) is the wrong puzzle on
+public BITFUC nets. Do not merge-mine.
 
 ## 4. After a block
 

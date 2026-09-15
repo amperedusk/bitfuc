@@ -17,3 +17,4 @@ chat. Mining rewards need 100 extra blocks before they can be spent; the wallet
 button “Mine until I can spend” does that.
 
 Technical: `docs/wallet.md`, `docs/mining.md`, `docs/agents.md`.
+Public chain (not the starter UI): `docs/mainnet.md`.

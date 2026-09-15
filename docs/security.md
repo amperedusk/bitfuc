@@ -39,7 +39,7 @@ project operates. `nMinimumChainWork` and `defaultAssumeValid` are zero.
 Nobody should `-assumevalid` a foreign hash.
 
 A network of one operator is not decentralized. Publish seeds only when at
-least two independent machines have held a tip (`docs/testnet.md`).
+least two independent machines have held a tip (`docs/mainnet-peers.md`).
 
 ## Wallets and keys
 
