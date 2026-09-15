@@ -168,6 +168,99 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
     wextra = extra + [f"-rpcwallet={wallet}"]
     mine_lock = threading.Lock()
     mine_job = {"running": False, "wanted": 0, "done": 0, "error": None}
+    money_lock = threading.Lock()
+    money_cache: dict = {"height": None, "data": None, "scanning": False}
+    last_good_lock = threading.Lock()
+    last_good: dict = {}
+
+    def issued_sats(h: int) -> int:
+        if h < 1:
+            return 0
+        cap_sats = 1_000_000_000 * 100_000_000
+        n_blocks = 13_140_000
+        base = cap_sats // n_blocks
+        rem = cap_sats % n_blocks
+        if h <= rem:
+            return h * (base + 1)
+        return rem * (base + 1) + (h - rem) * base
+
+    def money_snapshot(height) -> dict:
+        """Instant numbers. UTXO scan runs in the background so refresh is not blank."""
+        h = int(height or 0)
+        subsidy = 76.10350077 if 1 <= h <= 13_140_000 else 0.0
+        issued = issued_sats(h) / 1e8
+        with money_lock:
+            cached = money_cache["data"] or {}
+            last_fee = float(cached.get("last_fee") or 0)
+            last_burn = float(cached.get("last_burn") or 0)
+            burned_total = float(cached.get("burned_total") or 0)
+            if money_cache["height"] == height and cached.get("circulating") is not None:
+                circulating = cached["circulating"]
+                subsidy = cached.get("subsidy") if cached.get("subsidy") is not None else subsidy
+                last_fee = float(cached.get("last_fee") or 0)
+                last_burn = float(cached.get("last_burn") or 0)
+                burned_total = float(cached.get("burned_total") or 0)
+            else:
+                circulating = max(0.0, issued - burned_total)
+            need_scan = money_cache["height"] != height and not money_cache["scanning"]
+            if need_scan:
+                money_cache["scanning"] = True
+        if need_scan:
+            threading.Thread(target=_scan_money, args=(height,), daemon=True).start()
+        return {
+            "circulating": circulating,
+            "cap": 1_000_000_000,
+            "issuing_until": 13_140_000,
+            "subsidy": subsidy,
+            "last_fee": last_fee,
+            "last_burn": last_burn,
+            "burned_total": burned_total,
+        }
+
+    def _scan_money(height) -> None:
+        h = int(height or 0)
+        with money_lock:
+            prev = dict(money_cache["data"] or {})
+        circulating = None
+        last_fee = float(prev.get("last_fee") or 0)
+        last_burn = float(prev.get("last_burn") or 0)
+        burned_total = float(prev.get("burned_total") or 0)
+        subsidy = prev.get("subsidy")
+        if subsidy is None:
+            subsidy = 76.10350077 if 1 <= h <= 13_140_000 else 0.0
+        try:
+            utxo = run_json(cli, extra, "gettxoutsetinfo", timeout=45) or {}
+            circulating = utxo.get("total_amount")
+        except RuntimeError:
+            pass
+        if h > 0:
+            try:
+                st = run_json(cli, extra, "getblockstats", str(h), timeout=8) or {}
+                last_fee = float(st.get("totalfee") or 0) / 1e8
+                last_burn = last_fee * 20 / 1000
+                if st.get("subsidy") is not None:
+                    subsidy = float(st["subsidy"]) / 1e8
+            except RuntimeError:
+                pass
+        if circulating is not None and h >= 1:
+            burned_total = max(0, issued_sats(h) - int(round(float(circulating) * 1e8))) / 1e8
+        else:
+            circulating = prev.get("circulating")
+            if circulating is None:
+                circulating = max(0.0, issued_sats(h) / 1e8 - burned_total)
+        data = {
+            "circulating": circulating,
+            "cap": 1_000_000_000,
+            "issuing_until": 13_140_000,
+            "subsidy": subsidy,
+            "last_fee": last_fee,
+            "last_burn": last_burn,
+            "burned_total": burned_total,
+        }
+        with money_lock:
+            money_cache["height"] = height
+            money_cache["data"] = data
+            money_cache["scanning"] = False
 
     def mine_worker(n: int, addr: str) -> None:
         try:
@@ -218,7 +311,13 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                 except RuntimeError as e:
                     with mine_lock:
                         job = dict(mine_job)
-                    if job.get("running"):
+                    with last_good_lock:
+                        cached = dict(last_good)
+                    if job.get("running") or cached:
+                        cached["mining"] = job
+                        if cached:
+                            self._send(200, json.dumps(cached))
+                            return
                         self._send(
                             200,
                             json.dumps(
@@ -256,23 +355,23 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                     }
                     for t in txs
                 ]
-                self._send(
-                    200,
-                    json.dumps(
-                        {
-                            "chain": info.get("chain"),
-                            "blocks": info.get("blocks"),
-                            "connections": net.get("connections"),
-                            "bestblockhash": info.get("bestblockhash"),
-                            "trusted": mine.get("trusted"),
-                            "immature": mine.get("immature"),
-                            "maturity_left": next_maturity_left(cli, extra, wextra, info.get("blocks"), txs),
-                            "address": addr,
-                            "transactions": slim,
-                            "mining": job,
-                        }
-                    ),
-                )
+                payload = {
+                    "chain": info.get("chain"),
+                    "blocks": info.get("blocks"),
+                    "connections": net.get("connections"),
+                    "bestblockhash": info.get("bestblockhash"),
+                    "trusted": mine.get("trusted"),
+                    "immature": mine.get("immature"),
+                    "maturity_left": next_maturity_left(cli, extra, wextra, info.get("blocks"), txs),
+                    "address": addr,
+                    "transactions": slim,
+                    "mining": job,
+                    "money": money_snapshot(info.get("blocks")),
+                }
+                with last_good_lock:
+                    last_good.clear()
+                    last_good.update(payload)
+                self._send(200, json.dumps(payload))
                 return
             if path == "/api/lookup":
                 q = (parse_qs(parsed.query).get("q") or [""])[0]
