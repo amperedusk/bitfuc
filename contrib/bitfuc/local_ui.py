@@ -21,9 +21,39 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+try:
+    import signal
+
+    signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+except (AttributeError, ValueError):
+    pass
+
 UI_HTML_PATH = Path(__file__).with_name("wallet_ui.html")
 ADDR_OK = re.compile(r"^(fuc|tfuc|fucrt)1[0-9a-z]{6,}$")
 HASH64 = re.compile(r"^[0-9a-fA-F]{64}$")
+
+
+def coinbase_blocks_left(confirmations) -> int:
+    # Bitcoin: GetBlocksToMaturity = max(0, COINBASE_MATURITY+1 - depth)
+    return max(0, 101 - int(confirmations or 0))
+
+
+def next_maturity_left(cli: str, extra: list[str], wextra: list[str], height, txs: list) -> int | None:
+    try:
+        since = "0"
+        h = int(height or 0)
+        if h > 100:
+            since = run_cli(cli, extra, "getblockhash", str(h - 100), timeout=8)
+        res = run_json(cli, wextra, "listsinceblock", since, timeout=8) or {}
+        imm = [t for t in (res.get("transactions") or []) if t.get("category") == "immature"]
+        if imm:
+            return coinbase_blocks_left(max(int(t.get("confirmations") or 0) for t in imm))
+    except RuntimeError:
+        pass
+    imm = [t for t in txs if t.get("category") == "immature"]
+    if not imm:
+        return None
+    return coinbase_blocks_left(max(int(t.get("confirmations") or 0) for t in imm))
 
 
 def run_cli(cli: str, extra: list[str], *args: str, timeout: float | None = 120) -> str:
@@ -161,12 +191,15 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
 
         def _send(self, code: int, body, ctype: str = "application/json"):
             data = body if isinstance(body, bytes) else body.encode("utf-8")
-            self.send_response(code)
-            self.send_header("Content-Type", ctype)
-            self.send_header("Content-Length", str(len(data)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(data)
+            try:
+                self.send_response(code)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(data)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                return
 
         def do_GET(self):
             parsed = urlparse(self.path)
@@ -181,7 +214,7 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                     bal = run_json(cli, wextra, "getbalances", timeout=8)
                     rec = run_json(cli, wextra, "listreceivedbyaddress", "0", "true", timeout=8)
                     addr = rec[0]["address"] if rec else run_cli(cli, wextra, "getnewaddress", timeout=8)
-                    txs = run_json(cli, wextra, "listtransactions", "*", "25", timeout=8) or []
+                    txs = list(reversed(run_json(cli, wextra, "listtransactions", "*", "8", timeout=8) or []))
                 except RuntimeError as e:
                     with mine_lock:
                         job = dict(mine_job)
@@ -212,8 +245,14 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                         "category": t.get("category"),
                         "amount": t.get("amount"),
                         "confirmations": t.get("confirmations"),
+                        "maturity_left": (
+                            coinbase_blocks_left(t.get("confirmations"))
+                            if t.get("category") == "immature"
+                            else None
+                        ),
                         "address": t.get("address"),
                         "txid": t.get("txid"),
+                        "time": t.get("time") or t.get("timereceived"),
                     }
                     for t in txs
                 ]
@@ -227,6 +266,7 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                             "bestblockhash": info.get("bestblockhash"),
                             "trusted": mine.get("trusted"),
                             "immature": mine.get("immature"),
+                            "maturity_left": next_maturity_left(cli, extra, wextra, info.get("blocks"), txs),
                             "address": addr,
                             "transactions": slim,
                             "mining": job,
