@@ -177,6 +177,7 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
             if path == "/api/status":
                 try:
                     info = run_json(cli, extra, "getblockchaininfo", timeout=8)
+                    net = run_json(cli, extra, "getnetworkinfo", timeout=8) or {}
                     bal = run_json(cli, wextra, "getbalances", timeout=8)
                     rec = run_json(cli, wextra, "listreceivedbyaddress", "0", "true", timeout=8)
                     addr = rec[0]["address"] if rec else run_cli(cli, wextra, "getnewaddress", timeout=8)
@@ -201,7 +202,9 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                     200,
                     json.dumps(
                         {
+                            "chain": info.get("chain"),
                             "blocks": info.get("blocks"),
+                            "connections": net.get("connections"),
                             "bestblockhash": info.get("bestblockhash"),
                             "trusted": mine.get("trusted"),
                             "immature": mine.get("immature"),
@@ -307,7 +310,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description="Local BITFUC wallet (127.0.0.1 only)")
     p.add_argument("--cli", required=True)
     p.add_argument("--datadir", required=True)
-    p.add_argument("--chain", choices=("regtest",), default="regtest")
+    p.add_argument("--chain", choices=("regtest", "test", "main"), default="regtest")
     p.add_argument("--wallet", default="miner")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8765)
@@ -315,7 +318,8 @@ def main() -> int:
     if args.host not in ("127.0.0.1", "localhost", "::1"):
         raise SystemExit("error: this helper only binds on this computer")
 
-    extra = ["-regtest", f"-datadir={args.datadir}"]
+    chain_args = {"regtest": ["-regtest"], "test": ["-testnet"], "main": []}
+    extra = [*chain_args[args.chain], f"-datadir={args.datadir}"]
     httpd = ThreadingHTTPServer((args.host, args.port), make_handler(args.cli, extra, args.wallet, args.datadir))
     url = f"http://{args.host}:{args.port}/"
     print(f"Open {url}", flush=True)

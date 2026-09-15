@@ -5,6 +5,8 @@ Genesis, magics, ports, and money rule are frozen (`docs/genesis.md`,
 chain. Addresses are `fuc1…`. P2P is **17333**. RPC is **17332** on localhost.
 
 The starter wallet (`./scripts/ui/start.sh`) is **regtest**. It is not this chain.
+Public-chain wallet page on this computer: `./scripts/ui/start-mainnet.sh`
+→ http://127.0.0.1:8766
 
 ## Run a node
 

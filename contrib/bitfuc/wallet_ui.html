@@ -78,7 +78,7 @@
 <body>
 <main>
   <h1>BITFUC wallet</h1>
-  <p class="sub">On this computer only. Keys stay in bitfucd. This is not bitfuc.com.</p>
+  <p class="sub" id="sub">On this computer only. Keys stay in bitfucd. This is not bitfuc.com.</p>
   <div class="note">Receive, send, mine, and look up hashes from here. Mining rewards need 100 extra blocks before they can be spent. Send stays available while mining runs in the background.</div>
   <div id="err"></div>
   <div id="ok"></div>
@@ -87,7 +87,7 @@
     <div class="label">Spendable FUC</div>
     <div class="big" id="trusted">…</div>
     <div class="muted">Immature (mining, wait 100 blocks): <span id="immature">…</span></div>
-    <div class="muted">Blocks: <span id="height">…</span> <span id="mineprog"></span></div>
+    <div class="muted">Blocks: <span id="height">…</span> · Peers: <span id="peers">…</span> <span id="mineprog"></span></div>
     <p class="mono muted" id="tip"></p>
   </div>
 
@@ -101,14 +101,14 @@
   <div class="card">
     <div class="label">Send FUC</div>
     <p class="muted">Paste their BITFUC address (fuc1 / tfuc1 / fucrt1). Amount is in FUC, not bits.</p>
-    <input id="to" placeholder="fucrt1…" autocomplete="off" spellcheck="false">
+    <input id="to" placeholder="fuc1…" autocomplete="off" spellcheck="false">
     <input id="amount" placeholder="1.25" inputmode="decimal">
     <button type="button" id="send">Send</button>
   </div>
 
   <div class="card">
     <div class="label">Mine</div>
-    <p class="muted">This starter wallet is a private chain on <em>this</em> computer. You are the only miner, so the buttons usually succeed. That is practice, not public FUC.</p>
+    <p class="muted" id="minehint">This starter wallet is a private chain on <em>this</em> computer. You are the only miner, so the buttons usually succeed. That is practice, not public FUC.</p>
     <p class="muted">On the public chain, mining is a race: about every two minutes <em>someone</em> finds a block. The whole ~76 FUC goes to that finder. Pressing mine does not put you in a queue and does not guarantee the next block. Other people hash at the same time. A mining reward still needs 100 extra blocks before it can be spent.</p>
     <button type="button" class="mine" data-n="1">Mine 1 block</button>
     <button type="button" class="mine" data-n="101">Mine until I can spend</button>
@@ -199,7 +199,17 @@ async function showLookup(q) {
 }
 async function refresh() {
   const s = await api("/api/status");
+  const main = s.chain === "main";
+  document.title = main ? "BITFUC wallet (main)" : "BITFUC wallet";
+  $("sub").textContent = main
+    ? "Public chain on this computer. Addresses start with fuc1. Not the starter UI."
+    : "On this computer only. Keys stay in bitfucd. This is not bitfuc.com.";
+  $("minehint").innerHTML = main
+    ? "This is bitfuc-main. Mining is a race against whoever else is connected. The whole ~76 FUC goes to the finder of that block. Wait 100 extra blocks before spending a mining reward."
+    : "This starter wallet is a private chain on <em>this</em> computer. You are the only miner, so the buttons usually succeed. That is practice, not public FUC.";
+  $("to").placeholder = main ? "fuc1…" : "fucrt1…";
   $("height").textContent = s.blocks;
+  $("peers").textContent = (s.connections == null) ? "…" : s.connections;
   $("trusted").textContent = s.trusted;
   $("immature").textContent = s.immature;
   $("addr").textContent = s.address;
