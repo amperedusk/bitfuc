@@ -368,6 +368,15 @@ if(BUILD_CLI)
   set_target_properties(bitcoin-cli PROPERTIES OUTPUT_NAME bitfuc-cli)
 endif()
 
+# Public build names. Core still uses bitcoind / bitcoin-cli internally.
+if(BUILD_DAEMON AND BUILD_CLI)
+  add_custom_target(bitfuc DEPENDS bitcoind bitcoin-cli)
+elseif(BUILD_DAEMON)
+  add_custom_target(bitfuc DEPENDS bitcoind)
+elseif(BUILD_CLI)
+  add_custom_target(bitfuc DEPENDS bitcoin-cli)
+endif()
+
 add_executable(bitfuc-rxhash ${PROJECT_SOURCE_DIR}/contrib/bitfuc/rxhash.cpp)
 target_include_directories(bitfuc-rxhash PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(bitfuc-rxhash PRIVATE bitcoin_crypto randomx)

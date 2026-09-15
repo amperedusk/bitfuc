@@ -7,7 +7,7 @@ node, then open a local page that talks only to that node.
 git clone https://github.com/amperedusk/bitfuc.git
 cd bitfuc
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
-cmake --build build --target bitcoind bitcoin-cli
+cmake --build build --target bitfuc
 ./scripts/ui/start.sh
 # browser: http://127.0.0.1:8765  (this machine only)
 ```

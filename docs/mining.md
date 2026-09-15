@@ -21,7 +21,7 @@ use `generatetoaddress` or a RandomX miner against `getblocktemplate`.
 
 ```bash
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
-cmake --build build --target bitcoind bitcoin-cli
+cmake --build build --target bitfuc
 # binaries: build/bin/bitfucd  build/bin/bitfuc-cli
 ```
 

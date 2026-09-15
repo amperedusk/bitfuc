@@ -9,13 +9,12 @@ git clone https://github.com/amperedusk/bitfuc.git
 cd bitfuc
 git checkout <commit>
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
-cmake --build build --target bitcoind bitcoin-cli
+cmake --build build --target bitfuc
 shasum -a 256 build/bin/bitfucd build/bin/bitfuc-cli   # macOS
 # sha256sum build/bin/bitfucd build/bin/bitfuc-cli    # Linux
 ```
 
-CMake target names stay `bitcoind` / `bitcoin-cli`. Files on disk are `bitfucd`
-/ `bitfuc-cli`.
+`cmake --build build --target bitfuc` writes `bitfucd` and `bitfuc-cli`.
 
 Linux CI on `main` runs the same cmake line and prints SHA-256 (workflow
 `bitfuc-build`). Compare the log to your tree.

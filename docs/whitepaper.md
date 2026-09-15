@@ -398,11 +398,11 @@ Whether anyone treats FUC as money is a social and legal question, not a lemma o
 ```text
 python3 contrib/bitfuc/genesis.py
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
-cmake --build build --target bitcoind bitcoin-cli
+cmake --build build --target bitfuc
 ./scripts/regtest/acceptance.sh
 ```
 
-CMake target names remain `bitcoind` / `bitcoin-cli`. Output names are `bitfucd` / `bitfuc-cli`.
+`cmake --build build --target bitfuc` writes `bitfucd` / `bitfuc-cli`.
 
 ---
 

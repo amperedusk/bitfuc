@@ -10,7 +10,7 @@ The public website is a separate brochure. This repository is the node.
 git clone https://github.com/amperedusk/bitfuc.git
 cd bitfuc
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
-cmake --build build --target bitcoind bitcoin-cli
+cmake --build build --target bitfuc
 # binaries: build/bin/bitfucd  build/bin/bitfuc-cli
 ./scripts/regtest/acceptance.sh
 ```
@@ -37,7 +37,7 @@ There are no fake balances, fake blocks, or fake markets in this tree.
 | [docs/wallet.md](docs/wallet.md) | Descriptor wallet in `bitfucd` (no web wallet) |
 | [docs/whitepaper.md](docs/whitepaper.md) | Working paper (not a prospectus) |
 
-Upstream Bitcoin Core build notes live under [doc/](doc/). BITFUC binaries are `bitfucd` / `bitfuc-cli` (CMake target names remain `bitcoind` / `bitcoin-cli`).
+Upstream Bitcoin Core build notes live under [doc/](doc/). `cmake --build build --target bitfuc` writes `bitfucd` and `bitfuc-cli`.
 
 ## What this project will not do
 
