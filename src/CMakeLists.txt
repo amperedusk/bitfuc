@@ -143,6 +143,7 @@ target_link_libraries(bitcoin_common
     bitcoin_util
     univalue
     secp256k1
+    randomx
     Boost::headers
     $<TARGET_NAME_IF_EXISTS:USDT::headers>
     $<$<PLATFORM_ID:Windows>:ws2_32>
@@ -278,6 +279,7 @@ target_link_libraries(bitcoin_node
     core_interface
     bitcoin_common
     bitcoin_util
+    randomx
     $<TARGET_NAME_IF_EXISTS:bitcoin_zmq>
     leveldb
     minisketch
@@ -365,6 +367,11 @@ if(BUILD_CLI)
   install_binary_component(bitcoin-cli HAS_MANPAGE)
   set_target_properties(bitcoin-cli PROPERTIES OUTPUT_NAME bitfuc-cli)
 endif()
+
+add_executable(bitfuc-rxhash ${PROJECT_SOURCE_DIR}/contrib/bitfuc/rxhash.cpp)
+target_include_directories(bitfuc-rxhash PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(bitfuc-rxhash PRIVATE bitcoin_crypto randomx)
+set_target_properties(bitfuc-rxhash PROPERTIES OUTPUT_NAME bitfuc-rxhash)
 
 
 if(BUILD_TX)

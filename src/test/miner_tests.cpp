@@ -781,7 +781,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         {
             // A block template does not have proof-of-work, but it might pass
             // verification by coincidence. Grind the nonce if needed:
-            while (CheckProofOfWork(block.GetHash(), block.nBits, Assert(m_node.chainman)->GetParams().GetConsensus())) {
+            while (CheckProofOfWork(block, Assert(m_node.chainman)->GetParams().GetConsensus())) {
                 block.nNonce++;
             }
 
@@ -827,7 +827,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
             if (txFirst.size() < 4)
                 txFirst.push_back(block.vtx[0]);
             block.hashMerkleRoot = BlockMerkleRoot(block);
-            block.nNonce = bi.nonce;
+            const auto& consensus = Assert(m_node.chainman)->GetParams().GetConsensus();
+            block.nNonce = 0;
+            while (!CheckProofOfWork(block, consensus)) {
+                ++block.nNonce;
+            }
         }
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(block);
         // Alternate calls between Chainman's ProcessNewBlock and submitSolution

@@ -7,12 +7,12 @@
 | Protocol name | BITFUC |
 | Unit name | FUC |
 | Implementation | Bitcoin Core v31.1 derivative (`bitfucd`) |
-| Status | `bitfuc-regtest` operational locally. Public testnet not operating. **Mainnet not launched.** |
+| Status | Node, descriptor wallet, local wallet UI, mining, ASERT, agent JSON API |
 | License | MIT, retaining Bitcoin Core copyright notices |
 | Affiliation | None. The MIT *license* is not the Massachusetts Institute of Technology. |
 
 **Abstract.**
-A digital bearer instrument that can be transferred without a trusted bookkeeper requires three things that ordinary databases do not provide: a rule for who may create new units, a rule that forbids spending the same unit twice, and a rule for deciding which history is canonical when two conflicting histories are offered. Nakamoto (2008) gave a construction that meets those requirements by combining a UTXO transaction algebra with a most-work chain of proof-of-work headers. BITFUC is not a new consensus theorem. It is an *independently identified instance* of that construction: the same validation kernel, a disjoint network identity, a genesis coinbase that does not enter the UTXO set, and a written policy of zero developer allocation. This paper states the model with the care a mathematician would demand, records the parameters that exist, and marks the parameters that do not. It does **not** argue that BITFUC will displace existing money, that FUC has a price, or that a public chain is running.
+A digital bearer instrument that can be transferred without a trusted bookkeeper requires three things that ordinary databases do not provide: a rule for who may create new units, a rule that forbids spending the same unit twice, and a rule for deciding which history is canonical when two conflicting histories are offered. Nakamoto (2008) gave a construction that meets those requirements by combining a UTXO transaction algebra with a most-work chain of proof-of-work headers. BITFUC is not a new consensus theorem. It is an *independently identified instance* of that construction: the same validation kernel, a disjoint network identity, a genesis coinbase that does not enter the UTXO set, and a written policy of zero developer allocation. This paper states the model with the care a mathematician would demand, records the parameters that exist, and marks the parameters that do not. It does **not** argue that BITFUC will displace existing money, that FUC has a price, or that this website is a custodian.
 
 **Keywords.** electronic cash; UTXO; Nakamoto consensus; proof of work; monetary parameterization; network identity; premine; Bitcoin Core.
 
@@ -26,12 +26,12 @@ Electronic *cash* is the attempt to recover the bearer property of notes without
 
 Chaum (1982) showed that a blind-signature mint can issue unlinkable electronic coins, but the mint remains a trusted issuer and a single point of failure. Dai (1998) and Back (2002) sketched computational cost as a way to issue tokens without a mint. Haber and Stornetta (1991) showed how to time-stamp a document stream with hash pointers. Nakamoto (2008) composed these ideas into a system in which (i) units are unspent transaction outputs, (ii) authorization is a digital signature under a public verification key, and (iii) the canonical history is the chain of headers that represents the most accumulated proof of work.
 
-BITFUC stands in that line. The joke is the name. The engineering claim is narrower and, we think, more honest:
+BITFUC stands in that line. The engineering claim is narrower and, we think, more honest:
 
 1. The validation rules are those of Bitcoin Core 31.1, not a reimplementation of secp256k1 or Script.
 2. The *network* is not Bitcoin. Genesis, magic bytes, ports, address prefixes, and datadir are disjoint.
 3. No developer output is inserted at genesis. The genesis coinbase is `OP_RETURN` and, as in Bitcoin, genesis outputs are not placed in the UTXO set.
-4. Mainnet is not launched. The process `bitfucd` refuses `-chain=main` until a written freeze.
+4. Keys are held by whoever runs the node. This project does not operate a hosted wallet.
 
 A paper that announced “a new money” while those four sentences were false would be a marketing document. This is not that paper.
 
@@ -39,10 +39,10 @@ A paper that announced “a new money” while those four sentences were false w
 
 We claim only what can be checked from source and from a local node:
 
-- There exists a C++ implementation, derived from Bitcoin Core tag `v31.1`, that validates a BITFUC *regtest* chain.
-- Three local nodes can mine, transfer, restart, and resynchronize to a common tip (acceptance criteria in the repository).
+- There exists a C++ implementation, derived from Bitcoin Core tag `v31.1`, that validates BITFUC chains.
+- A local wallet UI and CLI can mine, transfer, and backup keys on a node the operator controls.
 - Address, magic, and port spaces are constructed so as not to collide with Bitcoin’s.
-- The proposed (not frozen) issuance schedule is the Bitcoin geometric subsidy, renamed.
+- Public-net money (D3): 1e9 FUC cap, ~2% of cap per year for 50 years, 2% fee burn, atom = bit.
 
 ### 1.2 What is not claimed
 
@@ -62,7 +62,7 @@ We do not claim that BITFUC is legal tender, that FUC has or will have exchange 
 
 **Script and Taproot.** Bitcoin’s script system, SegWit (BIP141), and Taproot (BIP340/341/342) are used as shipped in Core 31.1. We do not propose a new opcode.
 
-**Altcoins as reparameterizations.** Most “new coins” are Bitcoin’s construction with a different genesis and, sometimes, a different puzzle or retarget. Intellectual honesty requires saying so. BITFUC is in that class. Its distinction, if any, is *identification and policy*: a disjoint identity, an unspendable genesis, empty seeds, and a refusal to start an unfrozen mainnet.
+**Altcoins as reparameterizations.** Most “new coins” are Bitcoin’s construction with a different genesis and, sometimes, a different puzzle or retarget. Intellectual honesty requires saying so. BITFUC is in that class. Its distinction, if any, is *identification and policy*: a disjoint identity, an unspendable genesis, empty seeds, and keys that never live on the website.
 
 ---
 
@@ -80,7 +80,9 @@ Interpret \(\{0,1\}^{256}\) as an integer in \([0, 2^{256})\) in the usual big-e
 
 Let \(\mathbb{G}\) be the secp256k1 elliptic-curve group, of prime order \(n\), with generator \(G\). A secret key is \(d \in \{1,\ldots,n-1\}\); the public key is \(P = dG\). ECDSA and BIP340 Schnorr are used as specified; we treat them as EUF-CMA secure in the usual models. We do **not** introduce a new signature scheme.
 
-Amounts are integers. Write \(\mathsf{COIN} := 10^{8}\). One FUC, if the proposed parameterization is adopted, is \(\mathsf{COIN}\) base units. All conservation laws are in base units.
+Amounts are integers. Write \(\mathsf{COIN} := 10^{8}\). One FUC is
+\(\mathsf{COIN}\) **bits**. The atom is a bit, not a satoshi. All conservation
+laws are in bits.
 
 ### 3.2 Cryptographic assumptions (inherited)
 
@@ -192,12 +194,14 @@ Regtest uses a trivial target so that `generatetoaddress` succeeds on a laptop. 
 
 Bitcoin’s production difficulty adjustment retargets every 2016 blocks toward a ten-minute spacing. On a *new* SHA-256d chain the hashrate is, for a long time, negligible relative to existing SHA-256d ASIC capital. Two consequences are not optional:
 
-1. **51% is cheap.** An adversary who already points ASICs at Bitcoin can, at small opportunity cost, outwork a hobby BITFUC net, reorganize, and double-spend.
+1. **51% is cheap** on SHA-256d. An adversary who already points ASICs at Bitcoin can, at small opportunity cost, outwork a hobby SHA-256d net, reorganize, and double-spend.
 2. **2016-block retargeting is a poor fit** for a low, jumpy hashrate: a spike mines a large number of blocks at an obsolete target; a subsequent drought stalls the chain.
 
-These are recorded as open decisions D1 and D2. This paper **does not freeze** SHA-256d or the Bitcoin DAA for mainnet. Anyone who ships a public BITFUC mainnet on SHA-256d without stating the ASIC risk is omitting the security model.
+**D1.** Public BITFUC is an independent RandomX chain, not merge-mined with Bitcoin. `CheckProofOfWork` compares RandomX of the 80-byte header. Block identity stays SHA-256d.
 
-**Remark 3.** Changing the puzzle to an established CPU-oriented function (for example RandomX) is a *protocol* decision, not a website decision. It is a large consensus patch. It is not “inventing cryptography” if the function is specified and reviewed; it is also not free.
+**D2 (implemented).** Public nets use aserti3-2d (2-minute spacing, 2-day half-life, genesis anchor). Testnet also allows min-difficulty blocks. Regtest keeps Bitcoin’s DAA. See `docs/pow.md`.
+
+**Remark 3.** RandomX is an established CPU-oriented function, not a new hash. Wiring it is a large consensus patch. Until that patch, a public SHA-256d BITFUC net would omit the security model written in `docs/security.md`.
 
 ---
 
@@ -207,7 +211,7 @@ BITFUC uses Bitcoin Core 31.1 script: P2PKH, P2SH, P2WPKH, P2WSH, P2TR, as imple
 
 | Network | HRP | Example form |
 | --- | --- | --- |
-| bitfuc-main (gated) | `fuc` | `fuc1…` |
+| bitfuc-main | `fuc` | `fuc1…` |
 | bitfuc-test | `tfuc` | `tfuc1…` |
 | bitfuc-regtest | `fucrt` | `fucrt1…` |
 
@@ -229,30 +233,42 @@ User-agent: `/Bitfuc:0.1.0/`. Configuration file: `bitfuc.conf`. Process names: 
 
 Issuance is a function of height, not of a committee minute.
 
-### 9.1 Proposed function (not frozen for mainnet)
+### 9.1 Public-net function (D3)
 
-Let \(H \ge 1\) be the block height (genesis creates no spendable subsidy). Let
-
-\[
-\mathrm{era}(H) = \left\lfloor \frac{H}{210000} \right\rfloor, \qquad
-\mathrm{subsidy}(H) = \left\lfloor \frac{50 \cdot \mathsf{COIN}}{2^{\mathrm{era}(H)}} \right\rfloor
-\]
-
-with the usual integer vanishing after a finite number of halvings. The implied *nominal* cap is
+Let \(H\) be height. Genesis (\(H = 0\)) creates no spendable subsidy. Let
+\(\mathsf{CAP} = 10^{9}\cdot\mathsf{COIN}\) and \(N = 13\,140\,000\) (fifty
+365-day years of two-minute blocks). For \(1 \le H \le N\),
 
 \[
-\sum_{e=0}^{\infty} 210000 \cdot \left\lfloor \frac{50\cdot\mathsf{COIN}}{2^{e}} \right\rfloor \le 21\cdot 10^{6}\cdot\mathsf{COIN}.
+\mathrm{subsidy}(H) =
+\left\lfloor \frac{\mathsf{CAP}}{N} \right\rfloor
++ \mathbf{1}\bigl[H \le (\mathsf{CAP} \bmod N)\bigr].
 \]
 
-Integer division makes the realized sum strictly less than \(21\times 10^{6}\) FUC, as in Bitcoin. This is not mysticism. It is a geometric series with a floor.
+For \(H > N\), \(\mathrm{subsidy}(H) = 0\). The sum of spendable subsidies is
+exactly \(10^{9}\) FUC. That is 2% of the *cap* per year for 50 years, then
+nothing. It is not a 2% mint on each transfer (that rule is rejected: it
+unbounds supply and pays for spam).
 
-**Proposed spacing.** Ten minutes per block on a public net, if that net is ever frozen with this subsidy. Coinbase maturity: 100 blocks.
+**Fee burn.** On public nets, 2% of transaction fees are destroyed. Miners
+may claim subsidy plus the remaining 98% of fees. After issuance ends,
+circulating supply is flat or falling. This is deflation from *use*, not from
+a committee.
 
-**Rationale, without romance.** The numbers reuse Bitcoin Core’s amount type and subsidy routine so that the first implementation can be tested against a known shape. They are **not** an argument that FUC is “like Bitcoin” economically, that 21 million is optimal, or that scarcity implies price.
+**Spacing.** Two minutes (five times Bitcoin’s ten). Coinbase maturity: 100
+blocks (~3.3 hours). Default min fee: 0.010 bit/vB. Regtest keeps the
+laboratory 50 FUC / 150-block schedule and does not burn fees.
+
+**Rationale.** A 21 million cap was inherited numerology. A 1 billion cap
+gives hobby miners rounder balances without an infinite printer. Stopping
+issuance after 50 years is the bound. Burning a sliver of fees is the
+counterweight to activity. None of this implies a price.
 
 ### 9.2 Fees
 
-After subsidy tends to zero, block space is allocated by fees under inherited mempool policy. We do not invent a fee market in this paper. We do not promise that fees will be “enough” to secure a public chain. That is an open empirical question even for Bitcoin; it is unanswerable for an unlaunched BITFUC mainnet.
+After subsidy is zero, miners are paid from the unburned 98% of fees. We do
+not promise that this secures a public chain. That is an open empirical
+question.
 
 ### 9.3 Allocation
 
@@ -280,7 +296,7 @@ Magic bytes are \(\mathrm{SHA256d}(\text{UTF-8 label})[0..4)\):
 
 | Network | Label | Magic | P2P | RPC |
 | --- | --- | --- | --- | --- |
-| main (gated) | `bitfuc-main-magic-v1` | `82 43 ac 07` | 17333 | 17332 |
+| public | `bitfuc-main-magic-v1` | `82 43 ac 07` | 17333 | 17332 |
 | test | `bitfuc-test-magic-v1` | `83 30 6d c4` | 27333 | 27332 |
 | regtest | `bitfuc-regtest-magic-v1` | `96 79 32 83` | 17444 | 17443 |
 
@@ -325,19 +341,11 @@ Wallets are descriptor wallets inside `bitfucd`. This paper’s authors (and thi
 
 ## 12. Security discussion
 
-We separate *local* security (the laboratory) from *public* security (a hypothesized mainnet).
+We separate *local* security from *public* security.
 
-**Local.** On regtest, difficulty is trivial. An attacker on the same machine can rewrite the chain. That is not a defect; it is the point of a test network.
+**Local.** On the starter chain, difficulty is trivial so a laptop can mine. An attacker on the same machine can rewrite that chain. That is the point of a laboratory parameter.
 
-**Public (hypothetical).** Security reduces to:
-
-1. Assumptions 1–2;
-2. an honest majority of the *puzzle resource* (hashes per second for SHA-256d, or the corresponding resource for another puzzle);
-3. enough independent full nodes to detect invalid blocks;
-4. no hidden assumevalid of a foreign chain;
-5. no premine that concentrates initial \(U\).
-
-Item 2 is the difficult one. For SHA-256d it is, today, implausible for a new coin. This is not a footnote.
+**Public.** The *rules* are Bitcoin Core 31.1’s: signatures, script, UTXO, most-work. What is not equal to Bitcoin is the *cost of attacking this chain*. Nakamoto security is an honest majority of the puzzle resource on *this* network, plus enough independent full nodes. Bitcoin’s SHA-256d hashrate is enormous. A new coin does not inherit that. That is why public BITFUC is specified as independent RandomX (not merge-mined) and ASERT, not “as hard as Bitcoin because the C++ looks similar.” See `docs/pow.md`.
 
 **Privacy.** A UTXO graph is not “untraceable.” Cluster analysis applies. We do not claim otherwise.
 
@@ -352,46 +360,36 @@ The following sentences are **false** if asserted as theorems about the world in
 1. “BITFUC is money.”
 2. “FUC has a market price.”
 3. “BITFUC is a safe store of value.”
-4. “BITFUC is as secure as Bitcoin.”
-5. “Mainnet is live.”
+4. “BITFUC is as costly to 51% as Bitcoin.” (Same kernel. Different work pointed at this genesis.)
+5. “This website holds your keys.”
 6. “This paper is an offering or a solicitation.”
 7. “The authors are affiliated with MIT or any central bank.”
 
 What the paper *does* establish, in the modest sense of a specification plus a reproducible program, is that a Bitcoin-derived electronic-cash *construction* can be instantiated with a disjoint identity and a zero-allocation genesis, and that the laboratory instance works.
 
-Whether anyone should *use* such an instance as money is not a lemma. It is a social and legal question, and for BITFUC it is premature.
+Whether anyone should *use* such an instance as money is not a lemma. It is a social and legal question.
 
 ---
 
-## 14. Open problems (protocol, not marketing)
+## 14. Further work
 
-These are the stops recorded in `docs/open-decisions.md`. They are not resolved by typesetting.
+Decided and written: money (D3), ASERT (D2), RandomX (D1), unspendable genesis (D4), programs as ordinary operators (D10).
 
-**D1.** Puzzle for a public net: SHA-256d (accept ASIC 51% risk in a launch document) versus an established non-SHA-256d puzzle.
+Still engineering, not marketing:
 
-**D2.** Difficulty adjustment: Bitcoin’s 2016-block rule versus a fast absolute-time rule (e.g. ASERT) on mainnet; min-difficulty on testnet only.
-
-**D3.** Freeze or revise the subsidy table before genesis.
-
-**D4.** Keep genesis unspendable (recommended) or disclose a premine.
-
-Until D1–D4 are written as decisions, a mainnet genesis is a category error.
-
-Further problems that are not “features”:
-
+- Publish seeds without a single operator remaining a liveness dependency.
 - Fee security as subsidy vanishes (open even for Bitcoin).
-- Whether a native exchange, if ever designed, should be a book, an HTLC swap, or neither (Phase 8; not Uniswap-on-UTXO).
-- How to publish seeds without a single operator remaining a liveness dependency.
+- Whether a native market, if ever designed, should be a book, an HTLC swap, or neither — not Uniswap-on-UTXO.
 
 ---
 
 ## 15. Conclusion
 
-Nakamoto electronic cash is a conservative UTXO rewrite system whose canonical history is the most-work header chain. BITFUC is that system, identified so that it cannot be mistaken for Bitcoin, allocated so that genesis creates no developer coins, and gated so that an unfrozen mainnet cannot be started by accident.
+Nakamoto electronic cash is a conservative UTXO rewrite system whose canonical history is the most-work header chain. BITFUC is that system, identified so that it cannot be mistaken for Bitcoin, allocated so that genesis creates no developer coins, and operated so that keys stay with the node’s owner.
 
-That is a complete description. It is less exciting than a monetary manifesto and more accurate. The name is ridiculous. The node is required to be otherwise.
+That is a complete description. It is less exciting than a monetary manifesto and more accurate.
 
-If a later document announces a launch, it must publish time, frozen parameters, and any mining that occurred before the announcement. Until then, the only honest public statement about BITFUC as money is that **it is not, yet, money**. It is a specified construction and a working laboratory chain.
+Whether anyone treats FUC as money is a social and legal question, not a lemma of this paper. A later announcement of frozen genesis or mining before that freeze must still publish time and parameters.
 
 ---
 

@@ -19,12 +19,16 @@ add_library(bitcoin_crypto STATIC EXCLUDE_FROM_ALL
   sha3.cpp
   sha512.cpp
   siphash.cpp
+  randomx_pow.cpp
   ../support/cleanse.cpp
 )
 
+add_subdirectory(randomx EXCLUDE_FROM_ALL)
+target_include_directories(bitcoin_crypto PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/randomx/src)
 target_link_libraries(bitcoin_crypto
   PRIVATE
     core_interface
+    randomx
 )
 
 if(HAVE_SSE41)

@@ -9,6 +9,7 @@
 !/build_msvc
 /cmake-build-*/
 
+src/crypto/randomx/build/
 *.pyc
 __pycache__/
 .venv/

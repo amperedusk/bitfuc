@@ -102,7 +102,7 @@ def emit(name: str, psz: str, n_time: int, n_bits: int, n_nonce: int | None) -> 
     print(f"hash:         {block.hash_hex}")
     print(f"prev:         {'0' * 64}")
     print(f"coinbase:     {block.vtx[0].vin[0].scriptSig.hex()}")
-    print(f"meets_target: {block.is_valid()}")
+    print(f"header_hex:   {block.serialize()[:80].hex()}")
     print()
 
 
@@ -110,21 +110,11 @@ def main() -> None:
     verify_bitcoin_genesis()
     print("Bitcoin genesis reproduction: OK\n")
 
-    # 2026-08-21 15:00:00 UTC — Phase 1 generation time (regtest is resettable).
-    t = 1755788400
-    emit("bitfuc-regtest", "BITFUC regtest -- local development chain.", t, 0x207FFFFF, None)
-    emit("bitfuc-test", "BITFUC testnet -- TEST COINS -- NO VALUE.", t + 1, 0x207FFFFF, None)
-    emit(
-        "bitfuc-main (UNFROZEN draft, startup disabled)",
-        "BITFUC -- The cryptocurrency nobody asked for.",
-        t + 2,
-        0x207FFFFF,
-        None,
-    )
-    print(
-        "NOTE: mainnet uses easy nBits and is not launched. Do not mine it. "
-        "Regtest/test use 0x207fffff so genesis is reproducible in seconds."
-    )
+    t = 1757948400
+    emit("bitfuc-regtest", "BITFUC regtest -- local development chain.", 1755788400, 0x207FFFFF, 0)
+    emit("bitfuc-test", "BITFUC testnet -- TEST COINS -- NO VALUE.", t + 1, 0x207FFFFF, 0)
+    emit("bitfuc-main", "BITFUC", t, 0x207FFFFF, 1)
+    print("Public nets: RandomX of the 80-byte header (see docs/pow.md). Identity hash is SHA-256d.")
 
 
 if __name__ == "__main__":

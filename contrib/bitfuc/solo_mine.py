@@ -2,13 +2,10 @@
 # Copyright (c) 2026 BITFUC developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Solo SHA-256d miner for BITFUC via getblocktemplate / submitblock.
+"""Solo miner for BITFUC via getblocktemplate / submitblock or generatetoaddress.
 
-This talks to a local bitfucd you already started. It does not start a public
-network, does not mine mainnet, and does not need bitfuc.com.
-
-Works on -regtest (trivial target) and on unpublished -testnet while difficulty
-is still the easy placeholder. Mainnet is refused.
+Regtest still hashes SHA-256d in Python. Public nets use the node's RandomX miner
+(`generatetoaddress`). Not merge-mined with Bitcoin.
 """
 
 from __future__ import annotations
@@ -47,10 +44,16 @@ def chain_args(chain: str) -> list[str]:
         return ["-regtest"]
     if chain == "test":
         return ["-testnet"]
-    raise SystemExit("error: only --chain=regtest or --chain=test (mainnet is not launched)")
+    if chain == "main":
+        return []
+    raise SystemExit("error: --chain=regtest, test, or main")
 
 
-def mine_one(bitfuc_cli: str, extra: list[str], address: str) -> str:
+def mine_one(bitfuc_cli: str, extra: list[str], address: str, chain: str) -> str:
+    if chain != "regtest":
+        raw = cli(bitfuc_cli, extra, "generatetoaddress", "1", address)
+        hashes = json.loads(raw)
+        return hashes[0]
     tmpl = cli_json(bitfuc_cli, extra, "getblocktemplate", '{"rules":["segwit"]}')
     if not tmpl:
         raise SystemExit("error: empty getblocktemplate (is bitfucd running, and -server on?)")
@@ -73,8 +76,8 @@ def main() -> int:
     p.add_argument("--cli", default="", help="path to bitfuc-cli")
     p.add_argument("--datadir", default="", help="bitfucd datadir (cookie + conf)")
     p.add_argument("--rpcport", default="", help="override RPC port if not in conf")
-    p.add_argument("--chain", choices=("regtest", "test"), default="regtest")
-    p.add_argument("--address", required=True, help="BITFUC bech32 address (fucrt1… / tfuc1…)")
+    p.add_argument("--chain", choices=("regtest", "test", "main"), default="regtest")
+    p.add_argument("--address", required=True, help="BITFUC bech32 address (fuc1… / tfuc1… / fucrt1…)")
     p.add_argument("--blocks", type=int, default=1, help="how many blocks (0 = until Ctrl-C)")
     args = p.parse_args()
 
@@ -101,7 +104,7 @@ def main() -> int:
 
     n = 0
     while args.blocks == 0 or n < args.blocks:
-        h = mine_one(bitfuc_cli, extra, args.address)
+        h = mine_one(bitfuc_cli, extra, args.address, args.chain)
         n += 1
         height = cli(bitfuc_cli, extra, "getblockcount")
         print(f"found {h}  height={height}")

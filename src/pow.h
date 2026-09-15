@@ -9,6 +9,7 @@
 #include <consensus/params.h>
 
 #include <cstdint>
+#include <optional>
 
 class CBlockHeader;
 class CBlockIndex;
@@ -29,6 +30,12 @@ std::optional<arith_uint256> DeriveTarget(unsigned int nBits, uint256 pow_limit)
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params&);
 
+/** Puzzle digest: SHA-256d on regtest, RandomX of the 80-byte header on public nets. */
+uint256 GetPoWHash(const CBlockHeader& header, const Consensus::Params&);
+
+/** Check whether a header satisfies proof-of-work (uses GetPoWHash). */
+bool CheckProofOfWork(const CBlockHeader& header, const Consensus::Params&);
+
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
 bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params&);
@@ -43,7 +50,8 @@ bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Par
  * requires the values to be the same.
  *
  * Always returns true on networks where min difficulty blocks are allowed,
- * such as regtest/testnet.
+ * such as regtest/testnet. On ASERT nets (nASERTHalfLife > 0), any compact
+ * target accepted by DeriveTarget is permitted (nBits may change every block).
  */
 bool PermittedDifficultyTransition(const Consensus::Params& params, int64_t height, uint32_t old_nbits, uint32_t new_nbits);
 

@@ -24,7 +24,7 @@ BOOST_FIXTURE_TEST_SUITE(validation_tests, TestingSetup)
 static void TestBlockSubsidyHalvings(const Consensus::Params& consensusParams)
 {
     int maxHalvings = 64;
-    CAmount nInitialSubsidy = 50 * COIN;
+    CAmount nInitialSubsidy = consensusParams.nInitialSubsidy;
 
     CAmount nPreviousSubsidy = nInitialSubsidy * 2; // for height == 0
     BOOST_CHECK_EQUAL(nPreviousSubsidy, nInitialSubsidy * 2);
@@ -47,23 +47,48 @@ static void TestBlockSubsidyHalvings(int nSubsidyHalvingInterval)
 
 BOOST_AUTO_TEST_CASE(block_subsidy_test)
 {
-    const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
-    TestBlockSubsidyHalvings(chainParams->GetConsensus()); // As in main
+    const auto chainParams = CreateChainParams(*m_node.args, ChainType::REGTEST);
+    TestBlockSubsidyHalvings(chainParams->GetConsensus());
     TestBlockSubsidyHalvings(150); // As in regtest
     TestBlockSubsidyHalvings(1000); // Just another interval
 }
 
 BOOST_AUTO_TEST_CASE(subsidy_limit_test)
 {
-    const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
+    Consensus::Params consensusParams;
+    consensusParams.nSubsidyHalvingInterval = 210000;
     CAmount nSum = 0;
     for (int nHeight = 0; nHeight < 14000000; nHeight += 1000) {
-        CAmount nSubsidy = GetBlockSubsidy(nHeight, chainParams->GetConsensus());
+        CAmount nSubsidy = GetBlockSubsidy(nHeight, consensusParams);
         BOOST_CHECK(nSubsidy <= 50 * COIN);
         nSum += nSubsidy * 1000;
         BOOST_CHECK(MoneyRange(nSum));
     }
     BOOST_CHECK_EQUAL(nSum, CAmount{2099999997690000});
+}
+
+BOOST_AUTO_TEST_CASE(bitfuc_public_subsidy_and_fee_burn)
+{
+    const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
+    const auto& p = chainParams->GetConsensus();
+    BOOST_CHECK_EQUAL(p.nIssuingBlocks, 13'140'000);
+    BOOST_CHECK_EQUAL(p.nMoneyCap, 1'000'000'000 * COIN);
+    BOOST_CHECK_EQUAL(p.nFeeBurnPerMille, 20);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(0, p), 50 * COIN);
+    BOOST_CHECK(GetBlockSubsidy(1, p) > 0);
+    BOOST_CHECK_EQUAL(GetBlockSubsidy(p.nIssuingBlocks + 1, p), 0);
+
+    CAmount nSum = 0;
+    for (int h = 1; h <= p.nIssuingBlocks; ++h) {
+        nSum += GetBlockSubsidy(h, p);
+    }
+    BOOST_CHECK_EQUAL(nSum, p.nMoneyCap);
+    BOOST_CHECK(MoneyRange(nSum));
+
+    BOOST_CHECK_EQUAL(GetFeeBurn(0, p), 0);
+    BOOST_CHECK_EQUAL(GetFeeBurn(1000 * COIN, p), 20 * COIN);
+    BOOST_CHECK_EQUAL(GetClaimableBlockReward(1, 1000 * COIN, p),
+                      GetBlockSubsidy(1, p) + 980 * COIN);
 }
 
 BOOST_AUTO_TEST_CASE(signet_parse_tests)

@@ -8,22 +8,20 @@
 
 #include <cstdint>
 
-/** Amount in satoshis (Can be negative) */
+/** Amount in bits (can be negative). 1 FUC = 100,000,000 bits. */
 typedef int64_t CAmount;
 
-/** The amount of satoshis in one BTC. */
+/** The number of bits in one FUC. */
 static constexpr CAmount COIN = 100000000;
 
-/** No amount larger than this (in satoshi) is valid.
+/** No amount larger than this (in bits) is valid.
  *
- * Note that this constant is *not* the total money supply, which in Bitcoin
- * currently happens to be less than 21,000,000 BTC for various reasons, but
- * rather a sanity check. As this sanity check is used by consensus-critical
- * validation code, the exact value of the MAX_MONEY constant is consensus
- * critical; in unusual circumstances like a(nother) overflow bug that allowed
- * for the creation of coins out of thin air modification could lead to a fork.
+ * This is a sanity check used by consensus-critical validation, not the
+ * circulating supply. BITFUC's public-net cap is 1,000,000,000 FUC
+ * (`docs/monetary-policy.md`). Changing MAX_MONEY after a public launch
+ * is a fork.
  * */
-static constexpr CAmount MAX_MONEY = 21000000 * COIN;
+static constexpr CAmount MAX_MONEY = 1000000000 * COIN;
 inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 
 #endif // BITCOIN_CONSENSUS_AMOUNT_H

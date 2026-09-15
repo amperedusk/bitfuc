@@ -23,7 +23,6 @@ This plan follows the Phase 0 audit in `docs/architecture-audit.md`. It is a bui
 - [x] Identify Bitcoin Core 31.1 as baseline
 - [x] List identity fields that must change
 - [x] List reuse / replace / create
-- [ ] User review of `docs/open-decisions.md` before mainnet genesis
 
 **Exit:** audit merged; no node code required.
 
@@ -122,7 +121,7 @@ Document in `docs/regtest.md` and `docs/mining.md` (regtest section).
 
 Bitcoin Core descriptor wallet is already in the daemon. This phase is **correctness and docs**, not a new key-crypto stack.
 
-- `docs/wallet.md`: create, `getnewaddress`, send, `backupwallet`, restore, fee estimation
+- [x] `docs/wallet.md`: create, `getnewaddress`, send, `backupwallet`, restore
 - Tests: backup/restore round-trip; no private keys in logs at default verbosity
 - No browser wallet until the node is boringly reliable
 - No website key storage
@@ -131,12 +130,15 @@ Bitcoin Core descriptor wallet is already in the daemon. This phase is **correct
 
 ## Phase 5 — Mainnet preparation
 
-- Freeze `docs/monetary-policy.md`, `docs/consensus.md`, `docs/genesis.md`
-- Resolve `docs/open-decisions.md`
+- [x] Write `docs/monetary-policy.md` (D3)
+- [x] D2 ASERT on public nets (`docs/pow.md`)
+- [x] D1 decision = RandomX, independent (`docs/open-decisions.md`)
+- [x] Wire RandomX into `CheckProofOfWork`
+- [x] Freeze `docs/genesis.md` after RandomX genesis
+- [x] `docs/launch.md` checklist
+- [x] `docs/security.md` threat model against the actual code
 - Expand consensus/regtest tests (invalid subsidy, invalid PoW, immature coinbase, reorg)
 - Reproducible build notes (compiler, depends, commit, hashes)
-- `docs/launch.md`: time, params, “no developer premine”, any mining before public announcement
-- `docs/security.md` threat model against the actual code
 - `docs/privacy.md`: UTXO graph is not “untraceable”
 
 **Exit:** a reviewer can reproduce binaries and genesis from source.
@@ -157,7 +159,7 @@ Bitcoin Core descriptor wallet is already in the daemon. This phase is **correct
 ## Phase 7 — Explorer / website
 
 - `explorer/` indexes **this** chain (RPC/`txindex` or a documented indexer)
-- `website/` at bitfuc.com: joke branding, real links to source, mine, node, docs
+- Brochure site is a separate repository (not this tree)
 - No price, volume, user count, or “market cap” unless sourced and non-fabricated
 - If disconnected: show error, not last cached fantasy
 

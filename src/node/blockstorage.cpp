@@ -145,7 +145,14 @@ bool BlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, s
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 
-                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams)) {
+                CBlockHeader pow_header;
+                pow_header.nVersion = diskindex.nVersion;
+                pow_header.hashPrevBlock = diskindex.hashPrev;
+                pow_header.hashMerkleRoot = diskindex.hashMerkleRoot;
+                pow_header.nTime = diskindex.nTime;
+                pow_header.nBits = diskindex.nBits;
+                pow_header.nNonce = diskindex.nNonce;
+                if (!CheckProofOfWork(pow_header, consensusParams)) {
                     LogError("%s: CheckProofOfWork failed: %s\n", __func__, pindexNew->ToString());
                     return false;
                 }
@@ -1054,7 +1061,7 @@ bool BlockManager::ReadBlock(CBlock& block, const FlatFilePos& pos, const std::o
     const auto block_hash{block.GetHash()};
 
     // Check the header
-    if (!CheckProofOfWork(block_hash, block.nBits, GetConsensus())) {
+    if (!CheckProofOfWork(block, GetConsensus())) {
         LogError("Errors in block header at %s while reading block", pos.ToString());
         return false;
     }

@@ -3,28 +3,28 @@
 **TEST COINS — NO VALUE.**
 
 This is a practice chain so people can run a node, mine, and send **test** FUC.
-It is **not** mainnet. It is **not** money. It is **not** decentralized just
+It is **not** money. It is **not** decentralized just
 because the software is public — if one person runs every peer, say so.
-
-Mainnet stays gated (`bitfucd` refuses `-chain=main`).
 
 ## Identity (published)
 
 | Field | Value |
 | --- | --- |
-| Genesis hash | `21374e341b93a54c0899595c8118ade1ee4d3439a750755949167202be8aef2c` |
+| Genesis hash | `c0bc9ac6fb04993e0927a6a65ca60cec5c4e6e1bdb0379d3d481a8d91a70e053` |
 | Coinbase | `BITFUC testnet -- TEST COINS -- NO VALUE.` |
 | P2P magic | `83 30 6d c4` |
 | P2P / RPC | 27333 / 27332 |
 | Bech32 | `tfuc1…` |
-| Puzzle | SHA-256d (same engine as regtest; **not** a mainnet freeze) |
-| Difficulty | Easy `powLimit` + min-difficulty blocks (testnet only) |
+| Subsidy | Same public schedule as D3: ≈76.10 FUC/block, 2-minute blocks, 1e9 cap, 2% fee burn |
+| Puzzle | RandomX of the 80-byte header (identity remains SHA-256d) |
+| Difficulty | ASERT (2-day half-life) + min-difficulty blocks (testnet only) |
 | DNS / fixed seeds | Empty on purpose |
 
 Changing the genesis bytes after people have synced is a **new** testnet.
 
-Anyone can rewrite this chain with a laptop. That is acceptable for a test
-net and is **not** a security claim for mainnet (`docs/open-decisions.md` D1–D2).
+Anyone can rewrite this chain with a laptop while hashrate is tiny. That is
+acceptable for a test net and is **not** a security claim for the public chain
+(`docs/security.md`).
 
 ## Run a node
 
@@ -41,7 +41,7 @@ bitfucd -testnet -daemon \
   -fallbackfee=0.0002
 bitfuc-cli -testnet createwallet miner
 bitfuc-cli -testnet getblockchaininfo
-# bestblockhash at height 0 must be 21374e341b93a54c0899595c8118ade1ee4d3439a750755949167202be8aef2c
+# bestblockhash at height 0 must be c0bc9ac6fb04993e0927a6a65ca60cec5c4e6e1bdb0379d3d481a8d91a70e053
 ```
 
 RPC stays on localhost. P2P is what others connect to. Open **27333/tcp**

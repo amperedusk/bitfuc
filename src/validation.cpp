@@ -1842,15 +1842,47 @@ PackageMempoolAcceptResult ProcessNewPackage(Chainstate& active_chainstate, CTxM
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
+    if (consensusParams.nIssuingBlocks > 0) {
+        // Public BITFUC schedule: issue nMoneyCap over nIssuingBlocks, then 0.
+        // Height 0 matches the unspendable genesis nValue (50 FUC) so ConnectBlock
+        // accepts the frozen genesis; that output is not in the UTXO set and is
+        // not part of the cap.
+        if (nHeight < 1) {
+            return 50 * COIN;
+        }
+        if (nHeight > consensusParams.nIssuingBlocks) {
+            return 0;
+        }
+        const int64_t blocks{consensusParams.nIssuingBlocks};
+        const CAmount cap{consensusParams.nMoneyCap};
+        const CAmount base{cap / blocks};
+        const CAmount rem{cap % blocks};
+        return nHeight <= rem ? base + 1 : base;
+    }
+
     int halvings = nHeight / consensusParams.nSubsidyHalvingInterval;
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)
         return 0;
 
-    CAmount nSubsidy = 50 * COIN;
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
+    CAmount nSubsidy = consensusParams.nInitialSubsidy;
+    // Subsidy is cut in half every nSubsidyHalvingInterval blocks.
     nSubsidy >>= halvings;
     return nSubsidy;
+}
+
+CAmount GetFeeBurn(CAmount nFees, const Consensus::Params& consensusParams)
+{
+    if (nFees <= 0 || consensusParams.nFeeBurnPerMille <= 0) {
+        return 0;
+    }
+    // MAX_MONEY * 20 fits in int64.
+    return nFees * consensusParams.nFeeBurnPerMille / 1000;
+}
+
+CAmount GetClaimableBlockReward(int nHeight, CAmount nFees, const Consensus::Params& consensusParams)
+{
+    return GetBlockSubsidy(nHeight, consensusParams) + nFees - GetFeeBurn(nFees, consensusParams);
 }
 
 CoinsViews::CoinsViews(DBParams db_params, CoinsViewOptions options)
@@ -2610,7 +2642,7 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
              Ticks<SecondsDouble>(m_chainman.time_connect),
              Ticks<MillisecondsDouble>(m_chainman.time_connect) / m_chainman.num_blocks_total);
 
-    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, params.GetConsensus());
+    CAmount blockReward = GetClaimableBlockReward(pindex->nHeight, nFees, params.GetConsensus());
     if (block.vtx[0]->GetValueOut() > blockReward && state.IsValid()) {
         state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                       strprintf("coinbase pays too much (actual=%d vs limit=%d)", block.vtx[0]->GetValueOut(), blockReward));
@@ -3876,7 +3908,7 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock& block, CBlockInd
 static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+    if (fCheckPOW && !CheckProofOfWork(block, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "high-hash", "proof of work failed");
 
     return true;
@@ -4069,7 +4101,7 @@ void ChainstateManager::GenerateCoinbaseCommitment(CBlock& block, const CBlockIn
 bool HasValidProofOfWork(std::span<const CBlockHeader> headers, const Consensus::Params& consensusParams)
 {
     return std::ranges::all_of(headers,
-                               [&](const auto& header) { return CheckProofOfWork(header.GetHash(), header.nBits, consensusParams); });
+                               [&](const auto& header) { return CheckProofOfWork(header, consensusParams); });
 }
 
 bool IsBlockMutated(const CBlock& block, bool check_witness_root)

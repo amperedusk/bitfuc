@@ -1,9 +1,8 @@
 # BITFUC local regtest (3 nodes)
 
-This is the first real BITFUC network: three `bitfucd` processes on one machine,
-independent datadirs, P2P between them, no developer server required.
-
-Mainnet is **not** launched. `bitfucd` without `-regtest` refuses to start.
+This is a local three-process network: independent datadirs, P2P between them,
+no developer server required. Public nets (`-chain=main` / `-testnet`) start
+with empty DNS seeds; you add peers yourself.
 
 ## Ports (BITFUC, not Bitcoin)
 

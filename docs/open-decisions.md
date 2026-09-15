@@ -14,82 +14,55 @@ Nothing in this file is consensus. Defaults below are for discussion.
 
 ## D1. Proof-of-work algorithm
 
-**Must decide before mainnet genesis.** Regtest can keep Bitcoin Core’s SHA-256d + mockable mining.
+**Decided (2026-09-15): Option B — RandomX, independent chain, not merge-mined.**
 
-### Option A — SHA-256d (Bitcoin-style)
+Public nets will check RandomX on the 80-byte header. Block *identity* stays
+SHA-256d (`GetHash()`), same as Bitcoin Core. The puzzle is not Bitcoin’s
+SHA-256d, so a Bitcoin ASIC fleet does not get FUC as a side effect.
 
-- **Pros:** No new crypto; `getblocktemplate` and existing miners work; smallest fork diff.
-- **Cons:** Public BITFUC hashrate will be tiny. Bitcoin SHA-256d ASIC fleets can 51% attack, reorg, and double-spend cheaply. “CPU mining” does not compete with ASICs.
-- **Does not violate** “don’t invent cryptography.”
-- **Does not by itself** make mining fair for hobbyists.
+Regtest keeps SHA-256d + mockable mining.
 
-### Option B — Established ASIC-resistant PoW (e.g. RandomX)
-
-- **Pros:** CPU-mineable in practice for a hobby network; raises cost of drive-by ASIC attacks.
-- **Cons:** Large, consensus-critical patch; mining software ecosystem is different; more review surface; still not a reason to invent a new hash.
-
-### Option C — Other established PoW (scrypt, Equihash, …)
-
-- **Pros:** Known implementations exist in other coins.
-- **Cons:** Scrypt ASICs exist; still a large fork; easy to pick a dying algorithm.
-
-**Recommendation:** Option A for **regtest and code import**. Do **not** freeze mainnet genesis on Option A without explicitly accepting ASIC 51% risk in `docs/security.md` and `docs/launch.md`. If the goal is a hobby chain people can mine on laptops, prefer Option B before testnet/mainnet freeze — that is a protocol decision, not a later patch.
-
-**Phase 1 action:** inherit SHA-256d; do not change `src/pow.cpp` algorithm.
-
-**Testnet (2026-08-22):** public `bitfuc-test` uses SHA-256d as already shipped. That is a *test* choice so `getblocktemplate` works. It does **not** freeze D1 for mainnet. Test coins have no value; a laptop can rewrite the test chain.
+**Status:** RandomX is linked. Public nets compare `RandomX(header)` to the
+target. Block identity stays SHA-256d (`GetHash()`). Regtest stays SHA-256d.
+See `docs/pow.md`.
 
 ---
 
 ## D2. Difficulty adjustment
 
-**Must decide before public testnet/mainnet.** Bitcoin’s DAA is a poor fit for a new low-hashrate chain.
+**Decided (2026-09-15): Option B on public nets (aserti3-2d); Option A on
+regtest; Option C (min-difficulty) on testnet only.**
 
-### Option A — Bitcoin DAA (2016 blocks, ~14 days)
+| Net | Rule |
+| --- | --- |
+| bitfuc-main | ASERT, 2-minute spacing, 2-day half-life, genesis anchor, no min-diff |
+| bitfuc-test | Same ASERT + min-difficulty if the candidate is >2×spacing late |
+| bitfuc-regtest | Inherited 2016-block DAA, `nASERTHalfLife = 0` |
 
-- Matches upstream `nPowTargetTimespan`.
-- Hashrate spikes can mine thousands of blocks at the old target; then the chain can stall.
-
-### Option B — ASERT (or similar absolute-time EMA used by several Bitcoin-derived coins)
-
-- Adjusts continuously; better for small networks.
-- Consensus change relative to Bitcoin Core; must be specified and tested.
-- This is **not** “weakening PoW.” It is retargeting.
-
-### Option C — Allow min-difficulty on testnet only (`fPowAllowMinDifficultyBlocks`)
-
-- Bitcoin testnet behavior; fine for **testnet**.
-- Must not be enabled on mainnet.
-
-**Recommendation:** Option A on **regtest** (upstream). Option C on **testnet**. Option B **strongly preferred** for mainnet if SHA-256d is kept. Do not implement Option B until this decision is explicit.
-
-**Testnet (2026-08-22):** Option C is what `CTestNetParams` already does (`fPowAllowMinDifficultyBlocks = true`, easy `powLimit`). Documented as the public test rule. Mainnet must not copy this.
+Implemented in `src/pow.cpp`. Spec: `docs/pow.md`.
 
 ---
 
 ## D3. Monetary policy
 
-**Must decide before mainnet genesis.** Do not pick numbers with no rationale.
+**Decided for public nets (2026-09-15).** Written in `docs/monetary-policy.md`.
 
-### Proposed starting point (Bitcoin-like, documented — not “because 21e6 is magic”)
+| Parameter | Decision |
+| --- | --- |
+| Subunit | 1 FUC = **100,000,000 bits** (not sats) |
+| Block interval | **2 minutes** (5× Bitcoin’s 10) |
+| Hard cap | **1,000,000,000 FUC** |
+| Issuance | ≈2% of the *cap* per year for 50 years (13,140,000 two-minute blocks), then **0** |
+| Per-block subsidy (public) | cap / 13,140,000 ≈ 76.1035 FUC |
+| Transfer mint | **rejected** — extra 2% on each payment would inflate forever and reward spam |
+| Fee burn | **2% of transaction fees** destroyed; miners claim subsidy + 98% of fees |
+| Coinbase maturity | 100 blocks (~3.3 hours at 2 minutes) |
+| Developer premine | **0** |
+| Hidden allocation | **forbidden** |
+| Regtest | Unchanged laboratory 50 FUC / 150-block halvings, no fee burn |
 
-| Parameter | Proposal | Rationale / tradeoff |
-| --- | --- | --- |
-| Subunit | 1 FUC = 1e8 base units (`COIN`) | Reuse Bitcoin Core amount type; wallets/RPC already assume 8 decimals |
-| Block interval | 10 minutes | Reuse validation/spacing constants; slower UX than 1–2 min chains |
-| Initial subsidy | 50 FUC | Matches upstream `GetBlockSubsidy` shape; easy to test |
-| Halving | every 210,000 blocks (~4 years at 10 min) | Same issuance curve as Bitcoin; **not** a claim of similar value |
-| Theoretical max supply | 21,000,000 FUC | Sum of geometric subsidy; actual supply is slightly less due to halvings/rounding as in Bitcoin |
-| Coinbase maturity | 100 blocks | Reuse; ~16.7 hours at 10 min |
-| Fee policy | Bitcoin Core defaults | Do not invent a fee market |
-| Developer premine | **0** | Genesis coinbase unspendable; no founder outputs |
-| Hidden allocation | **forbidden** | |
-
-### Alternative (faster blocks)
-
-2-minute blocks, subsidy/halving rescaled so years-to-halving stay ~4 years. More chain growth and more orphan risk. Only if we want faster confirmations for a later DEX.
-
-**Recommendation:** table above for the first prototype. Write `docs/monetary-policy.md` with the same numbers **before** mainnet genesis. Changing subsidy after genesis is a hard fork.
+Mainnet genesis is frozen (`docs/genesis.md`). RandomX is linked (D1). ASERT
+is in the node (D2). Changing D3 after a public launch is a new coin.
 
 ---
 
@@ -98,6 +71,8 @@ Nothing in this file is consensus. Defaults below are for discussion.
 Bitcoin’s genesis output is not in the UTXO set (cannot be spent).
 
 **Recommendation:** same for BITFUC. That is **0 developer coins**, not a premine of 50 FUC to a founder key.
+
+**Status:** implemented. Genesis coinbase is `OP_RETURN`; genesis outputs are not inserted into the UTXO set.
 
 If anyone wants a spendable genesis output, stop: that is a premine and must be disclosed before implementation.
 
@@ -152,6 +127,20 @@ Simpler looking repo; worse provenance.
 ## D9. Bridges, wrapped FUC, DEX, custody, fiat
 
 **Deferred / stop.** No implementation without a new written decision. DEX is Phase 8 research (`docs/dex-design.md`), not Solidity on another chain pretending to be native FUC.
+
+---
+
+## D10. Machine / AI-agent operators
+
+**Decided (2026-09-15):** agents are ordinary node operators. No extra subsidy,
+no agent premine, no hosted “agent account.”
+
+A program may create a wallet, mine, pay a user or another agent, and accept
+payment via a `bitfuc:` invoice (`contrib/bitfuc/agent.py`, `docs/agents.md`).
+Shared hosted RPC is custody (D9). Opening RPC to the public internet is out
+of scope. A public directory of agents is an application, not consensus.
+
+This is not a claim that agents will use FUC. It is the rule if they do.
 
 ---
 

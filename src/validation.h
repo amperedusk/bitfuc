@@ -100,6 +100,10 @@ enum class SynchronizationState {
 extern const std::vector<std::string> CHECKLEVEL_DOC;
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
+/** Fees destroyed at this block (2% of fees on public nets; 0 on regtest). */
+CAmount GetFeeBurn(CAmount nFees, const Consensus::Params& consensusParams);
+/** Maximum coinbase value: subsidy + fees − fee burn. */
+CAmount GetClaimableBlockReward(int nHeight, CAmount nFees, const Consensus::Params& consensusParams);
 
 bool FatalError(kernel::Notifications& notifications, BlockValidationState& state, const bilingual_str& message);
 

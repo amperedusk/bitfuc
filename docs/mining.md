@@ -2,13 +2,20 @@
 
 You can mine on a node **you** run. Nobody’s website, pool, or VPS is required.
 
-**Nothing public is live.** Do not mine `-chain=main`. `bitfucd` will refuse it.
-`-testnet` is an unpublished laboratory chain (**TEST COINS — NO VALUE**). See
-`docs/testnet.md`.
+Mining is a **race**, not a queue and not a two-minute salary. The network aims
+to produce a block about every two minutes. Whoever finds a valid proof first
+gets the whole subsidy (~76.10 FUC on public nets). Everyone else starts on
+the next height. A later pool would only be a side deal that splits that one
+payout; this tree does not run one.
 
-SHA-256d is what the imported engine uses today. A future public net might
-choose a different puzzle (`docs/open-decisions.md` D1). That decision is not
-made by this file.
+`-testnet` is practice coins (**TEST COINS — NO VALUE**). See `docs/testnet.md`.
+
+Public nets check **RandomX** of the 80-byte header. Block identity stays
+SHA-256d (`GetHash()`). ASERT retargets public-net difficulty (`docs/pow.md`).
+Do not point a Bitcoin SHA-256d pool at this coin and call it BITFUC mining.
+
+`contrib/bitfuc/solo_mine.py` grinds SHA-256d on **regtest**. On public nets
+use `generatetoaddress` or a RandomX miner against `getblocktemplate`.
 
 ## 1. Build the node
 
@@ -26,7 +33,11 @@ On this computer only (not bitfuc.com):
 ./scripts/ui/start.sh
 ```
 
-That starts a local node if needed and opens http://127.0.0.1:8765 . Coins stay on the laboratory chain. There is no public network to “own FUC” on yet.
+That starts a local node if needed and opens http://127.0.0.1:8765. The starter
+script uses a local chain. For the public chain, run `bitfucd` without `-regtest`.
+
+A process that should mine and pay without a browser uses `contrib/bitfuc/agent.py`
+(`docs/agents.md`). Same node, JSON stdout, no hosted keys.
 
 ## 2. Regtest (the path that works now)
 
@@ -62,13 +73,15 @@ bitfuc-cli -regtest -datadir /tmp/bitfuc-mine-regtest \
   getblocktemplate '{"rules":["segwit"]}'
 ```
 
-A miner builds a block, finds a SHA-256d header under the target, and calls
-`submitblock`. `contrib/bitfuc/solo_mine.py` is that loop for BITFUC addresses
-(`fucrt1…` / `tfuc1…`), not Bitcoin `bc1`.
+A miner builds a block, finds a header whose **current** puzzle digest is
+under the target, and calls `submitblock`. Today that digest is SHA-256d.
+Public nets are decided as RandomX (`docs/pow.md`); this script will change
+with that patch. `contrib/bitfuc/solo_mine.py` is the loop for BITFUC
+addresses (`fucrt1…` / `tfuc1…`), not Bitcoin `bc1`.
 
 External SHA-256d software (cgminer, bfgminer, …) can work **only if** it is
-aimed at this node’s RPC and this chain’s template. Bitcoin mainnet stratum is
-the wrong network.
+aimed at this node’s RPC **and** the chain is still SHA-256d. Bitcoin mainnet
+stratum is the wrong network. Do not merge-mine.
 
 ## 4. After a block
 
@@ -82,19 +95,18 @@ the wrong network.
 | --- | --- |
 | Node + wallet + GBT + submitblock | Ready in this tree |
 | Solo CPU miner script | `contrib/bitfuc/solo_mine.py` |
-| Local regtest mining | Ready |
-| Unpublished testnet, local only | Prepared; not advertised as a network |
-| Public testnet / seeds / faucet | Not started |
-| Mainnet | Not launched |
+| Local starter (`./scripts/ui/start.sh`) | Ready (private chain; you are the only miner) |
+| Public chain | `bitfucd` starts; DNS seeds stay empty until operators publish peers |
 
-## 6. Rewards (engine defaults, not a price story)
+## 6. Rewards (not a price story)
 
-50 FUC per block, halving every 210,000 heights on non-regtest params;
-regtest halves every 150 blocks (Bitcoin Core’s laboratory interval).
-Genesis coinbase is unspendable.
+Public nets (`docs/monetary-policy.md`): about **76.10 FUC** per block for
+13,140,000 blocks (50 years at two minutes), then **0**. Cap **1,000,000,000
+FUC**. 2% of transaction **fees** are burned. A typical send needs **0.010
+bit/vB**. Regtest still pays 50 FUC and halves every 150 blocks. Genesis
+coinbase is unspendable.
 
 ## What this file does not claim
 
-- That a laptop competes with Bitcoin ASICs on a public SHA-256d net
-- That mining has started for the public
+- That a laptop is a 51% defense
 - That bitfuc.com must be online for you to find a block

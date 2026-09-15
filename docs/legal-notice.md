@@ -13,7 +13,6 @@ As of the Phase 0 audit, this repository did not yet contain a running blockchai
 - BITFUC does **not** guarantee that FUC has, or will have, any market value.
 - BITFUC does **not** promise investment return, profit, yield, or “getting in early.”
 - BITFUC is **not** a bank, broker, exchange, custodian, or issuer of a registered security merely by publishing this repository.
-- Joke branding (“the cryptocurrency nobody asked for”) is **not** a claim of equivalent status, security, or adoption to Bitcoin.
 
 ## No false legal certainty
 

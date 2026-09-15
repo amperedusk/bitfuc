@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BITFUC wallet</title>
+<style>
+  :root {
+    --bg:#09090b; --card:#18181c; --ink:#f4f4f5; --muted:#a1a1aa;
+    --line:rgba(255,255,255,.08); --accent:#fb7185; --ok:#4ade80;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 16px/1.5 var(--sans); background:var(--bg); color:var(--ink); }
+  main { max-width: 42rem; margin: 0 auto; padding: 1.5rem 1.1rem 4rem; }
+  h1 { font-size: 1.6rem; letter-spacing: -.02em; margin: 0 0 .35rem; }
+  .sub { color: var(--muted); margin: 0 0 1.2rem; }
+  .note { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 14px; margin:0 0 1rem; color:var(--muted); font-size:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin:0 0 12px; overflow:hidden; min-width:0; }
+  .label { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin:0 0 6px; }
+  .big { font-size:2rem; font-weight:700; margin:.1rem 0; letter-spacing:-.03em; }
+  .muted { color:var(--muted); font-size:14px; }
+  .mono, #tip, #addr, #backuppath, #ok, #err {
+    overflow-wrap:anywhere;
+    word-break:break-word;
+    max-width:100%;
+  }
+  .mono, #tip, #addr, #backuppath {
+    font-family:var(--mono);
+    font-size:.82rem;
+  }
+  button, input { font: 15px var(--sans); }
+  button {
+    background:var(--ink); color:var(--bg); border:0; padding:.6rem 1rem;
+    margin:.2rem .4rem .2rem 0; border-radius:999px; cursor:pointer; font-weight:600;
+  }
+  button:disabled { opacity:.45; cursor:wait; }
+  button.secondary { background:transparent; color:var(--ink); border:1px solid var(--line); }
+  button.danger { background:transparent; color:var(--accent); border:1px solid rgba(251,113,133,.4); }
+  code.txhash {
+    display:block;
+    max-width:100%;
+    margin:0;
+    padding:0;
+    font-family:var(--mono);
+    font-size:.78rem;
+    font-weight:500;
+    line-height:1.35;
+    color:var(--ok);
+    background:none;
+    overflow-wrap:anywhere;
+    word-break:break-all;
+    cursor:pointer;
+  }
+  code.txhash:hover { text-decoration: underline; text-underline-offset: 2px; }
+  input {
+    width:100%; max-width:100%; padding:.55rem .65rem; border:1px solid var(--line);
+    background:#0c0c10; color:var(--ink); border-radius:10px; margin:.3rem 0 .55rem;
+  }
+  #err { color:var(--accent); min-height:1.3em; font-size:14px; }
+  #ok { color:var(--ok); min-height:1.2em; font-size:14px; }
+  table { width:100%; table-layout:fixed; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:8px 4px; border-bottom:1px solid var(--line); vertical-align:top; overflow-wrap:anywhere; }
+  th { color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+  .txs th:nth-child(1), .txs td:nth-child(1) { width:6.2rem; }
+  .txs th:nth-child(2), .txs td:nth-child(2) { width:5.2rem; }
+  .txs th:nth-child(3), .txs td:nth-child(3) { width:3.4rem; }
+  .in { color:var(--ok); }
+  .out { color:var(--accent); }
+  #lookupout { margin-top:8px; overflow:hidden; }
+  #lookupout .row { margin: 0 0 8px; }
+  #lookupout ol { margin: 8px 0 0; padding-left: 1.2rem; }
+  #lookupout li { margin: 0 0 6px; }
+  footer { color:var(--muted); font-size:.8rem; margin-top:1.5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>BITFUC wallet</h1>
+  <p class="sub">On this computer only. Keys stay in bitfucd. This is not bitfuc.com.</p>
+  <div class="note">Receive, send, mine, and look up hashes from here. Mining rewards need 100 extra blocks before they can be spent. Send stays available while mining runs in the background.</div>
+  <div id="err"></div>
+  <div id="ok"></div>
+
+  <div class="card">
+    <div class="label">Spendable FUC</div>
+    <div class="big" id="trusted">…</div>
+    <div class="muted">Immature (mining, wait 100 blocks): <span id="immature">…</span></div>
+    <div class="muted">Blocks: <span id="height">…</span> <span id="mineprog"></span></div>
+    <p class="mono muted" id="tip"></p>
+  </div>
+
+  <div class="card">
+    <div class="label">Your receive address</div>
+    <p class="mono" id="addr">…</p>
+    <button type="button" id="copy">Copy</button>
+    <button type="button" class="secondary" id="newaddr">New address</button>
+  </div>
+
+  <div class="card">
+    <div class="label">Send FUC</div>
+    <p class="muted">Paste their BITFUC address (fuc1 / tfuc1 / fucrt1). Amount is in FUC, not bits.</p>
+    <input id="to" placeholder="fucrt1…" autocomplete="off" spellcheck="false">
+    <input id="amount" placeholder="1.25" inputmode="decimal">
+    <button type="button" id="send">Send</button>
+  </div>
+
+  <div class="card">
+    <div class="label">Mine</div>
+    <p class="muted">This starter wallet is a private chain on <em>this</em> computer. You are the only miner, so the buttons usually succeed. That is practice, not public FUC.</p>
+    <p class="muted">On the public chain, mining is a race: about every two minutes <em>someone</em> finds a block. The whole ~76 FUC goes to that finder. Pressing mine does not put you in a queue and does not guarantee the next block. Other people hash at the same time. A mining reward still needs 100 extra blocks before it can be spent.</p>
+    <button type="button" class="mine" data-n="1">Mine 1 block</button>
+    <button type="button" class="mine" data-n="101">Mine until I can spend</button>
+  </div>
+
+  <div class="card">
+    <div class="label">Recent activity</div>
+    <div id="txs" class="muted">…</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Look up a block or payment</div>
+    <p class="muted">This page asks <em>your</em> node. Paste a block number, click a green hash in Recent activity, or use Tip block.</p>
+    <input id="lookupq" placeholder="e.g. 12  or  click a hash above" autocomplete="off" spellcheck="false">
+    <button type="button" id="lookup">Look up</button>
+    <button type="button" class="secondary" id="lookuptip">Show latest block</button>
+    <div id="lookupout" class="muted">Nothing looked up yet.</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Save a copy of your keys</div>
+    <p class="muted">BITFUC does not use a 12-word phrase. Your keys live in a wallet file on this computer. This copies that file so you can put it on a USB stick. Anyone who has the file can spend your coins. This website never sees it.</p>
+    <button type="button" id="backupdl">Download wallet file</button>
+    <button type="button" class="secondary" id="backup">Show file on this Mac</button>
+    <p class="mono" id="backuppath"></p>
+  </div>
+
+  <footer>Close the tab anytime. Stop the node in a terminal with bitfuc-cli stop if you started it yourself.</footer>
+</main>
+<script>
+async function api(path, body) {
+  const opt = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
+  const r = await fetch(path, opt);
+  const j = await r.json();
+  if (!r.ok || j.error) throw new Error(j.error || r.statusText);
+  return j;
+}
+function $(id) { return document.getElementById(id); }
+function flash(msg, isErr) {
+  $("err").textContent = isErr ? msg : "";
+  $("ok").textContent = isErr ? "" : (msg || "");
+}
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+}
+function hashBtn(h) {
+  if (!h) return "";
+  return `<code class="txhash" data-h="${esc(h)}" title="Look up">${esc(h)}</code>`;
+}
+async function showLookup(q) {
+  q = String(q || "").trim().replace(/^Tip\s+/i, "");
+  $("lookupq").value = q;
+  const box = $("lookupout");
+  if (!q) {
+    box.textContent = "Type a block number (try 1) or click a hash in Recent activity.";
+    flash("Nothing to look up yet.", true);
+    return;
+  }
+  flash("", false);
+  box.textContent = "Asking this node…";
+  const j = await api("/api/lookup", { q });
+  if (j.kind === "tx") {
+    const vins = j.vin == null ? "wallet record" : (j.vin + " inputs");
+    box.innerHTML =
+      `<div class="row"><strong>Payment</strong></div>` +
+      `<div class="row mono">${hashBtn(j.txid)}</div>` +
+      `<div class="row muted">Confirmations: ${esc(j.confirmations)} · ${esc(vins)}</div>` +
+      (j.blockhash ? `<div class="row muted">In block: ${hashBtn(j.blockhash)}</div>` : `<div class="row muted">Unconfirmed</div>`) +
+      `<table><thead><tr><th>#</th><th>FUC</th><th>Address</th></tr></thead><tbody>` +
+      (j.vout || []).map(o => `<tr><td>${esc(o.n)}</td><td>${esc(o.value)}</td><td class="mono">${esc(o.address || o.type || "")}</td></tr>`).join("") +
+      `</tbody></table>`;
+  } else {
+    const txs = j.tx || [];
+    box.innerHTML =
+      `<div class="row"><strong>Block ${esc(j.height)}</strong></div>` +
+      `<div class="row mono">${hashBtn(j.hash)}</div>` +
+      `<div class="row muted">${esc(j.nTx)} payment(s) in this block</div>` +
+      (j.previousblockhash ? `<div class="row muted">Previous block: ${hashBtn(j.previousblockhash)}</div>` : "") +
+      `<ol>${txs.map(id => `<li class="mono">${hashBtn(id)}</li>`).join("")}</ol>`;
+  }
+  box.querySelectorAll(".txhash").forEach(b => {
+    b.onclick = () => showLookup(b.dataset.h).catch(e => {
+      $("lookupout").textContent = e.message;
+      flash(e.message, true);
+    });
+  });
+  box.scrollIntoView({ block: "nearest" });
+}
+async function refresh() {
+  const s = await api("/api/status");
+  $("height").textContent = s.blocks;
+  $("trusted").textContent = s.trusted;
+  $("immature").textContent = s.immature;
+  $("addr").textContent = s.address;
+  $("tip").textContent = s.bestblockhash ? ("Tip " + s.bestblockhash) : "";
+  $("tip").dataset.h = s.bestblockhash || "";
+  const mining = s.mining || {};
+  document.querySelectorAll("button.mine").forEach(el => { el.disabled = !!mining.running; });
+  const mp = $("mineprog");
+  if (mining.running) {
+    mp.textContent = " · mining " + (mining.done || 0) + "/" + mining.wanted;
+  } else {
+    mp.textContent = "";
+    if (mining.error) flash(mining.error, true);
+  }
+  const box = $("txs");
+  const txs = s.transactions || [];
+  if (!txs.length) { box.textContent = "No payments yet."; return; }
+  box.innerHTML = "<table class=\"txs\"><thead><tr><th>Type</th><th>FUC</th><th>Conf</th><th>Tx hash</th></tr></thead><tbody>" +
+    txs.map(t => {
+      const cls = t.category === "receive" || t.category === "generate" || t.category === "immature" ? "in" : "out";
+      return `<tr><td class="${cls}">${esc(t.category)}</td><td>${esc(t.amount)}</td><td>${esc(t.confirmations)}</td><td>${hashBtn(t.txid)}</td></tr>`;
+    }).join("") + "</tbody></table>";
+  box.querySelectorAll(".txhash").forEach(b => {
+    b.onclick = () => showLookup(b.dataset.h).catch(e => flash(e.message, true));
+  });
+}
+$("copy").onclick = async () => {
+  flash("", false);
+  try { await navigator.clipboard.writeText($("addr").textContent); flash("Address copied."); }
+  catch (e) { flash(e.message, true); }
+};
+$("newaddr").onclick = async () => {
+  flash("", false);
+  try { await api("/api/address", {}); await refresh(); }
+  catch (e) { flash(e.message, true); }
+};
+$("send").onclick = async () => {
+  flash("", false);
+  $("send").disabled = true;
+  try {
+    const j = await api("/api/send", { to: $("to").value.trim(), amount: $("amount").value.trim() });
+    flash("Sent. " + j.txid);
+    $("amount").value = "";
+    await showLookup(j.txid);
+    await refresh();
+  } catch (e) { flash(e.message, true); }
+  $("send").disabled = false;
+};
+document.querySelectorAll("button.mine").forEach(btn => {
+  btn.onclick = async () => {
+    flash("", false);
+    try {
+      await api("/api/mine", { n: Number(btn.dataset.n) });
+      flash("Mining started in the background. You can still send.");
+      await refresh();
+    } catch (e) { flash(e.message, true); }
+  };
+});
+$("lookup").onclick = () => showLookup($("lookupq").value).catch(e => {
+  $("lookupout").textContent = e.message;
+  flash(e.message, true);
+});
+$("lookupq").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); $("lookup").click(); }
+});
+$("lookuptip").onclick = () => {
+  const h = $("tip").dataset.h;
+  if (!h) { flash("Wait for the node to load, then try again.", true); return; }
+  showLookup(h).catch(e => {
+    $("lookupout").textContent = e.message;
+    flash(e.message, true);
+  });
+};
+$("backupdl").onclick = () => {
+  flash("Your browser should save a wallet file. Keep it like a house key.", false);
+  window.location.href = "/api/backup-download";
+};
+$("backup").onclick = async () => {
+  flash("", false);
+  try {
+    const j = await api("/api/backup", {});
+    $("backuppath").textContent = j.path || "";
+    flash(j.revealed ? "Finder should be highlighting the file. Copy it to a USB stick." : "Saved: " + j.path);
+  } catch (e) { flash(e.message, true); }
+};
+refresh().catch(e => { flash(e.message, true); });
+setInterval(() => { refresh().catch(() => {}); }, 2500);
+</script>
+</body>
+</html>

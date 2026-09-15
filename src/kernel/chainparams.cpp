@@ -74,6 +74,11 @@ public:
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
         consensus.nSubsidyHalvingInterval = 210000;
+        // 1e9 FUC over 50 × 262800 two-minute years ≈ 2% of the cap per year, then 0.
+        consensus.nIssuingBlocks = 13'140'000;
+        consensus.nMoneyCap = 1'000'000'000 * COIN;
+        consensus.nFeeBurnPerMille = 20;
+        consensus.nInitialSubsidy = 50 * COIN;
         consensus.BIP34Height = 1;
         consensus.BIP34Hash = uint256{};
         consensus.BIP65Height = 1;
@@ -81,10 +86,12 @@ public:
         consensus.CSVHeight = 1;
         consensus.SegwitHeight = 0;
         consensus.MinBIP9WarningHeight = 0;
-        // Draft mainnet uses an easy target because genesis is not frozen. Do not launch.
+        // Easy compact target; ASERT raises difficulty if blocks are fast.
         consensus.powLimit = uint256{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
-        consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
-        consensus.nPowTargetSpacing = 10 * 60;
+        consensus.nPowTargetTimespan = 2016 * 2 * 60; // 2016 two-minute blocks ≈ 2.8 days (unused when ASERT)
+        consensus.nPowTargetSpacing = 2 * 60;
+        consensus.nASERTHalfLife = 2 * 24 * 60 * 60; // 2-day half-life
+        consensus.fPowUseRandomX = true;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.enforce_BIP94 = false;
         consensus.fPowNoRetargeting = false;
@@ -117,11 +124,11 @@ public:
         m_assumed_blockchain_size = 1;
         m_assumed_chain_state_size = 0;
 
-        genesis = CreateGenesisBlock(1755788402, 2, 0x207fffff, 1, 50 * COIN,
-                                     "BITFUC -- The cryptocurrency nobody asked for.");
+        genesis = CreateGenesisBlock(1757948400, 1, 0x207fffff, 1, 50 * COIN,
+                                     "BITFUC");
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256{"15f3f5e8e0e0777c7e99c4b5559c23f7ace26cb51a9498173a558e10b468456b"});
-        assert(genesis.hashMerkleRoot == uint256{"29cf53d71101bb367f2965c60a2a1dd3d83f4b36fee4ea2fb33b8937e263ab24"});
+        assert(consensus.hashGenesisBlock == uint256{"a1d32d9f62f1d1d2f9115a2a36bb35bf15a44b2e603003ca394c159b6758533a"});
+        assert(genesis.hashMerkleRoot == uint256{"4abee4d3e0c24aed5c07eb70178f1387d45ee490d37ec503937b8cc5f3b6fbe4"});
 
         vSeeds.clear();
 
@@ -163,6 +170,11 @@ public:
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
         consensus.nSubsidyHalvingInterval = 210000;
+        // 1e9 FUC over 50 × 262800 two-minute years ≈ 2% of the cap per year, then 0.
+        consensus.nIssuingBlocks = 13'140'000;
+        consensus.nMoneyCap = 1'000'000'000 * COIN;
+        consensus.nFeeBurnPerMille = 20;
+        consensus.nInitialSubsidy = 50 * COIN;
         consensus.BIP34Height = 1;
         consensus.BIP34Hash = uint256{};
         consensus.BIP65Height = 1;
@@ -171,8 +183,10 @@ public:
         consensus.SegwitHeight = 0;
         consensus.MinBIP9WarningHeight = 0;
         consensus.powLimit = uint256{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
-        consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
-        consensus.nPowTargetSpacing = 10 * 60;
+        consensus.nPowTargetTimespan = 2016 * 2 * 60; // 2016 two-minute blocks ≈ 2.8 days (unused when ASERT)
+        consensus.nPowTargetSpacing = 2 * 60;
+        consensus.nASERTHalfLife = 2 * 24 * 60 * 60; // 2-day half-life
+        consensus.fPowUseRandomX = true;
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.enforce_BIP94 = false;
         consensus.fPowNoRetargeting = false;
@@ -202,10 +216,10 @@ public:
         m_assumed_blockchain_size = 1;
         m_assumed_chain_state_size = 0;
 
-        genesis = CreateGenesisBlock(1755788401, 1, 0x207fffff, 1, 50 * COIN,
+        genesis = CreateGenesisBlock(1757948401, 0, 0x207fffff, 1, 50 * COIN,
                                      "BITFUC testnet -- TEST COINS -- NO VALUE.");
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256{"21374e341b93a54c0899595c8118ade1ee4d3439a750755949167202be8aef2c"});
+        assert(consensus.hashGenesisBlock == uint256{"c0bc9ac6fb04993e0927a6a65ca60cec5c4e6e1bdb0379d3d481a8d91a70e053"});
         assert(genesis.hashMerkleRoot == uint256{"4f01fe9b1f9336878b1b8fd346c8034c6d9fd9769a9614e3e73097aff98f37a3"});
 
         vFixedSeeds.clear();
@@ -427,11 +441,11 @@ public:
         nDefaultPort = 47333;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1755788402, 2, 0x207fffff, 1, 50 * COIN,
-                                     "BITFUC -- The cryptocurrency nobody asked for.");
+        genesis = CreateGenesisBlock(1757948400, 1, 0x207fffff, 1, 50 * COIN,
+                                     "BITFUC");
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256{"15f3f5e8e0e0777c7e99c4b5559c23f7ace26cb51a9498173a558e10b468456b"});
-        assert(genesis.hashMerkleRoot == uint256{"29cf53d71101bb367f2965c60a2a1dd3d83f4b36fee4ea2fb33b8937e263ab24"});
+        assert(consensus.hashGenesisBlock == uint256{"a1d32d9f62f1d1d2f9115a2a36bb35bf15a44b2e603003ca394c159b6758533a"});
+        assert(genesis.hashMerkleRoot == uint256{"4abee4d3e0c24aed5c07eb70178f1387d45ee490d37ec503937b8cc5f3b6fbe4"});
 
         m_assumeutxo_data = {};
 

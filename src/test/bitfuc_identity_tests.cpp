@@ -4,8 +4,10 @@
 
 #include <chainparams.h>
 #include <chainparamsbase.h>
+#include <consensus/amount.h>
 #include <kernel/chainparams.h>
 #include <key_io.h>
+#include <pow.h>
 #include <test/util/setup_common.h>
 #include <uint256.h>
 #include <util/chaintype.h>
@@ -87,6 +89,30 @@ BOOST_AUTO_TEST_CASE(regtest_address_roundtrip_not_bitcoin)
     BOOST_CHECK(!addr.starts_with("tb1"));
     const auto decoded{DecodeDestination(addr)};
     BOOST_CHECK(decoded == dest);
+}
+
+BOOST_AUTO_TEST_CASE(public_money_policy)
+{
+    const auto main = CChainParams::Main();
+    const auto test = CChainParams::TestNet();
+    const auto reg = CChainParams::RegTest({});
+    BOOST_CHECK_EQUAL(main->GetConsensus().nMoneyCap, 1'000'000'000 * COIN);
+    BOOST_CHECK_EQUAL(main->GetConsensus().nIssuingBlocks, 13'140'000);
+    BOOST_CHECK_EQUAL(main->GetConsensus().nPowTargetSpacing, 2 * 60);
+    BOOST_CHECK_EQUAL(main->GetConsensus().nFeeBurnPerMille, 20);
+    BOOST_CHECK_EQUAL(main->GetConsensus().nASERTHalfLife, 2 * 24 * 60 * 60);
+    BOOST_CHECK_EQUAL(test->GetConsensus().nMoneyCap, main->GetConsensus().nMoneyCap);
+    BOOST_CHECK_EQUAL(test->GetConsensus().nASERTHalfLife, main->GetConsensus().nASERTHalfLife);
+    BOOST_CHECK_EQUAL(reg->GetConsensus().nIssuingBlocks, 0);
+    BOOST_CHECK_EQUAL(reg->GetConsensus().nFeeBurnPerMille, 0);
+    BOOST_CHECK_EQUAL(reg->GetConsensus().nASERTHalfLife, 0);
+    BOOST_CHECK(main->GetConsensus().fPowUseRandomX);
+    BOOST_CHECK(test->GetConsensus().fPowUseRandomX);
+    BOOST_CHECK(!reg->GetConsensus().fPowUseRandomX);
+    BOOST_CHECK(main->GetConsensus().hashGenesisBlock == uint256{"a1d32d9f62f1d1d2f9115a2a36bb35bf15a44b2e603003ca394c159b6758533a"});
+    BOOST_CHECK(GetPoWHash(main->GenesisBlock(), main->GetConsensus()) != main->GenesisBlock().GetHash());
+    BOOST_CHECK(CheckProofOfWork(main->GenesisBlock(), main->GetConsensus()));
+    BOOST_CHECK(CheckProofOfWork(test->GenesisBlock(), test->GetConsensus()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

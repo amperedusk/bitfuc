@@ -2,131 +2,158 @@
 # Copyright (c) 2026 BITFUC developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Local-only BITFUC helper for people who do not want a terminal.
+"""Local BITFUC wallet UI.
 
 Binds 127.0.0.1 only. Talks to bitfuc-cli on your machine. Never asks for a
-seed. Coins here are on the local laboratory chain until a public net exists.
+seed. This is not a website wallet.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
+import threading
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
-PAGE = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BITFUC on this computer</title>
-<style>
-  :root { --ink:#1b1b1b; --muted:#5a5854; --paper:#f4f0e6; --red:#a31f34; --line:#d4cfc3; }
-  * { box-sizing: border-box; }
-  body { margin:0; font: 17px/1.5 Iowan Old Style, Palatino, Georgia, serif; background:var(--paper); color:var(--ink); }
-  main { max-width: 36rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-  h1 { font-size: 1.7rem; margin: 0 0 .4rem; }
-  .note { background:#fffdf8; border:1px solid var(--line); border-left:4px solid var(--red); padding:.85rem 1rem; margin:1rem 0 1.5rem; }
-  .card { background:#fffdf8; border:1px solid var(--line); padding:1rem 1.1rem; margin:0 0 1rem; }
-  .label { font: 11px/1.2 Helvetica Neue, Helvetica, Arial, sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--red); }
-  .big { font-size:1.8rem; margin:.2rem 0; }
-  .mono { font-family: ui-monospace, Courier New, monospace; font-size:.85rem; word-break:break-all; }
-  button, input { font: 15px Helvetica Neue, Helvetica, sans-serif; }
-  button { background:var(--ink); color:var(--paper); border:0; padding:.55rem .9rem; margin:.2rem .35rem .2rem 0; cursor:pointer; }
-  button:disabled { opacity:.45; cursor:wait; }
-  button.secondary { background:transparent; color:var(--ink); border:1px solid var(--ink); }
-  input { width:100%; padding:.45rem .5rem; border:1px solid var(--ink); background:#fff; margin:.35rem 0 .6rem; }
-  #err { color:var(--red); min-height:1.3em; }
-  footer { color:var(--muted); font-size:.85rem; margin-top:2rem; }
-</style>
-</head>
-<body>
-<main>
-  <h1>BITFUC on this computer</h1>
-  <p>This page is only on your machine. It is not a website wallet and it cannot see the internet’s idea of a price.</p>
-  <div class="note">
-    There is <b>no public BITFUC network yet</b>. What you mine here stays on this computer’s laboratory chain.
-    That is still real software — just not money you can spend at a shop.
-  </div>
-  <div id="err"></div>
-  <div class="card">
-    <div class="label">Blocks on this chain</div>
-    <div class="big" id="height">…</div>
-    <div class="label">Spendable FUC</div>
-    <div class="big" id="trusted">…</div>
-    <div class="label">Immature (needs 100 more blocks)</div>
-    <div class="big" id="immature">…</div>
-  </div>
-  <div class="card">
-    <div class="label">Your address (this computer)</div>
-    <p class="mono" id="addr">…</p>
-    <button type="button" id="newaddr">New address</button>
-  </div>
-  <div class="card">
-    <div class="label">Mine</div>
-    <p>Each block pays a reward that you cannot spend until 100 further blocks exist. “Mine until I can spend” does that for you (101 blocks). It can take a minute.</p>
-    <button type="button" data-n="1">Mine 1 block</button>
-    <button type="button" data-n="101">Mine until I can spend</button>
-  </div>
-  <footer>Keys never leave bitfucd. Close this tab anytime. Stop the node from a terminal with bitfuc-cli stop if you started it yourself.</footer>
-</main>
-<script>
-async function api(path, body) {
-  const opt = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
-  const r = await fetch(path, opt);
-  const j = await r.json();
-  if (!r.ok || j.error) throw new Error(j.error || r.statusText);
-  return j;
-}
-function $(id) { return document.getElementById(id); }
-function setBusy(b) {
-  document.querySelectorAll("button").forEach(el => { el.disabled = b; });
-}
-async function refresh() {
-  const s = await api("/api/status");
-  $("height").textContent = s.blocks;
-  $("trusted").textContent = s.trusted;
-  $("immature").textContent = s.immature;
-  $("addr").textContent = s.address;
-}
-$("newaddr").onclick = async () => {
-  $("err").textContent = "";
-  try { await api("/api/address", {}); await refresh(); }
-  catch (e) { $("err").textContent = e.message; }
-};
-document.querySelectorAll("button[data-n]").forEach(btn => {
-  btn.onclick = async () => {
-    $("err").textContent = "";
-    setBusy(true);
-    try { await api("/api/mine", { n: Number(btn.dataset.n) }); await refresh(); }
-    catch (e) { $("err").textContent = e.message; }
-    setBusy(false);
-  };
-});
-refresh().catch(e => { $("err").textContent = e.message; });
-</script>
-</body>
-</html>
-"""
+UI_HTML_PATH = Path(__file__).with_name("wallet_ui.html")
+ADDR_OK = re.compile(r"^(fuc|tfuc|fucrt)1[0-9a-z]{6,}$")
+HASH64 = re.compile(r"^[0-9a-fA-F]{64}$")
 
 
-def run_cli(cli: str, extra: list[str], *args: str) -> str:
+def run_cli(cli: str, extra: list[str], *args: str, timeout: float | None = 120) -> str:
     cmd = [cli, *extra, *args]
     try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT).strip()
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT, timeout=timeout).strip()
+    except subprocess.TimeoutExpired as e:
+        raise RuntimeError("the node is busy (often mining). Try again in a few seconds.") from e
     except subprocess.CalledProcessError as e:
         raise RuntimeError(e.output.strip() or str(e)) from e
 
 
-def run_json(cli: str, extra: list[str], *args: str):
-    raw = run_cli(cli, extra, *args)
+def run_json(cli: str, extra: list[str], *args: str, timeout: float | None = 120):
+    raw = run_cli(cli, extra, *args, timeout=timeout)
     return json.loads(raw) if raw else None
 
 
-def make_handler(cli: str, extra: list[str], wallet: str):
+def slim_block(block: dict) -> dict:
+    return {
+        "kind": "block",
+        "hash": block.get("hash"),
+        "height": block.get("height"),
+        "time": block.get("time"),
+        "nTx": block.get("nTx") or len(block.get("tx") or []),
+        "previousblockhash": block.get("previousblockhash"),
+        "tx": block.get("tx") or [],
+    }
+
+
+def slim_wallet_tx(tx: dict) -> dict:
+    outs = []
+    for d in tx.get("details") or []:
+        outs.append(
+            {
+                "n": d.get("vout"),
+                "value": d.get("amount"),
+                "address": d.get("address"),
+                "type": d.get("category"),
+            }
+        )
+    return {
+        "kind": "tx",
+        "txid": tx.get("txid"),
+        "confirmations": tx.get("confirmations"),
+        "blockhash": tx.get("blockhash"),
+        "time": tx.get("time") or tx.get("blocktime"),
+        "vin": None,
+        "vout": outs,
+    }
+
+
+def slim_tx(tx: dict) -> dict:
+    outs = []
+    for o in tx.get("vout") or []:
+        spk = o.get("scriptPubKey") or {}
+        outs.append(
+            {
+                "n": o.get("n"),
+                "value": o.get("value"),
+                "address": (spk.get("address") or (spk.get("addresses") or [None])[0]),
+                "type": spk.get("type"),
+            }
+        )
+    return {
+        "kind": "tx",
+        "txid": tx.get("txid"),
+        "confirmations": tx.get("confirmations"),
+        "blockhash": tx.get("blockhash"),
+        "time": tx.get("time") or tx.get("blocktime"),
+        "vin": len(tx.get("vin") or []),
+        "vout": outs,
+    }
+
+
+def _write_backup(cli: str, wextra: list[str], datadir: str) -> tuple[Path, str]:
+    folder = Path(datadir) / "backups"
+    folder.mkdir(parents=True, exist_ok=True)
+    name = f"bitfuc-wallet-{datetime.now().strftime('%Y%m%d-%H%M%S')}.dat"
+    dest = folder / name
+    run_cli(cli, wextra, "backupwallet", str(dest))
+    if not dest.is_file() or dest.stat().st_size == 0:
+        raise RuntimeError("backup file was not written")
+    return dest, name
+
+
+def lookup(cli: str, extra: list[str], wextra: list[str], query: str) -> dict:
+    q = (query or "").strip()
+    if q.lower().startswith("tip "):
+        q = q[4:].strip()
+    if not q:
+        raise RuntimeError("paste a block height, a block hash, or a transaction hash")
+    if q.isdigit():
+        bh = run_cli(cli, extra, "getblockhash", q)
+        return slim_block(run_json(cli, extra, "getblock", bh, "1"))
+    if not HASH64.match(q):
+        raise RuntimeError("use a block number (like 12) or a 64-character hash")
+    try:
+        return slim_tx(run_json(cli, extra, "getrawtransaction", q, "true"))
+    except RuntimeError:
+        pass
+    try:
+        return slim_wallet_tx(run_json(cli, wextra, "gettransaction", q))
+    except RuntimeError:
+        pass
+    try:
+        return slim_block(run_json(cli, extra, "getblock", q, "1"))
+    except RuntimeError as e:
+        raise RuntimeError("this node does not know that hash. Click a hash from Recent activity, or use Tip block.") from e
+
+
+def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
     wextra = extra + [f"-rpcwallet={wallet}"]
+    mine_lock = threading.Lock()
+    mine_job = {"running": False, "wanted": 0, "done": 0, "error": None}
+
+    def mine_worker(n: int, addr: str) -> None:
+        try:
+            left = n
+            while left > 0:
+                chunk = min(5, left)
+                run_cli(cli, wextra, "generatetoaddress", str(chunk), addr)
+                left -= chunk
+                with mine_lock:
+                    mine_job["done"] = n - left
+        except Exception as e:  # noqa: BLE001 — surface RPC text in the UI
+            with mine_lock:
+                mine_job["error"] = str(e)
+        finally:
+            with mine_lock:
+                mine_job["running"] = False
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):
@@ -142,30 +169,70 @@ def make_handler(cli: str, extra: list[str], wallet: str):
             self.wfile.write(data)
 
         def do_GET(self):
-            if self.path in ("/", "/index.html"):
-                self._send(200, PAGE, "text/html; charset=utf-8")
+            parsed = urlparse(self.path)
+            path = parsed.path
+            if path in ("/", "/index.html"):
+                self._send(200, UI_HTML_PATH.read_text(encoding="utf-8"), "text/html; charset=utf-8")
                 return
-            if self.path == "/api/status":
+            if path == "/api/status":
                 try:
-                    info = run_json(cli, extra, "getblockchaininfo")
-                    bal = run_json(cli, wextra, "getbalances")
-                    rec = run_json(cli, wextra, "listreceivedbyaddress", "0", "true")
-                    addr = rec[0]["address"] if rec else run_cli(cli, wextra, "getnewaddress")
+                    info = run_json(cli, extra, "getblockchaininfo", timeout=8)
+                    bal = run_json(cli, wextra, "getbalances", timeout=8)
+                    rec = run_json(cli, wextra, "listreceivedbyaddress", "0", "true", timeout=8)
+                    addr = rec[0]["address"] if rec else run_cli(cli, wextra, "getnewaddress", timeout=8)
+                    txs = run_json(cli, wextra, "listtransactions", "*", "25", timeout=8) or []
                 except RuntimeError as e:
                     self._send(503, json.dumps({"error": str(e)}))
                     return
                 mine = bal.get("mine", {})
+                with mine_lock:
+                    job = dict(mine_job)
+                slim = [
+                    {
+                        "category": t.get("category"),
+                        "amount": t.get("amount"),
+                        "confirmations": t.get("confirmations"),
+                        "address": t.get("address"),
+                        "txid": t.get("txid"),
+                    }
+                    for t in txs
+                ]
                 self._send(
                     200,
                     json.dumps(
                         {
                             "blocks": info.get("blocks"),
+                            "bestblockhash": info.get("bestblockhash"),
                             "trusted": mine.get("trusted"),
                             "immature": mine.get("immature"),
                             "address": addr,
+                            "transactions": slim,
+                            "mining": job,
                         }
                     ),
                 )
+                return
+            if path == "/api/lookup":
+                q = (parse_qs(parsed.query).get("q") or [""])[0]
+                try:
+                    self._send(200, json.dumps(lookup(cli, extra, wextra, q)))
+                except RuntimeError as e:
+                    self._send(400, json.dumps({"error": str(e)}))
+                return
+            if path == "/api/backup-download":
+                try:
+                    dest, name = _write_backup(cli, wextra, datadir)
+                except RuntimeError as e:
+                    self._send(400, json.dumps({"error": str(e)}))
+                    return
+                data = dest.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Disposition", f'attachment; filename="{name}"')
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(data)
                 return
             self._send(404, json.dumps({"error": "not found"}))
 
@@ -185,12 +252,48 @@ def make_handler(cli: str, extra: list[str], wallet: str):
                     n = int(payload.get("n") or 1)
                     if n < 1 or n > 200:
                         raise RuntimeError("ask for between 1 and 200 blocks")
-                    addr = run_cli(cli, wextra, "getnewaddress")
-                    rec = run_json(cli, wextra, "listreceivedbyaddress", "0", "true")
-                    if rec:
-                        addr = rec[0]["address"]
-                    run_cli(cli, wextra, "generatetoaddress", str(n), addr)
-                    self._send(200, json.dumps({"ok": True, "mined": n}))
+                    with mine_lock:
+                        if mine_job["running"]:
+                            raise RuntimeError("already mining — wait for the height to catch up")
+                        rec = run_json(cli, wextra, "listreceivedbyaddress", "0", "true")
+                        addr = rec[0]["address"] if rec else run_cli(cli, wextra, "getnewaddress")
+                        mine_job.update({"running": True, "wanted": n, "done": 0, "error": None})
+                    threading.Thread(target=mine_worker, args=(n, addr), daemon=True).start()
+                    self._send(200, json.dumps({"ok": True, "started": n}))
+                    return
+                if self.path == "/api/send":
+                    to = str(payload.get("to") or "").strip()
+                    amount = str(payload.get("amount") or "").strip()
+                    if not ADDR_OK.match(to):
+                        raise RuntimeError("that is not a BITFUC address (fuc1 / tfuc1 / fucrt1)")
+                    try:
+                        if float(amount) <= 0:
+                            raise ValueError
+                    except ValueError:
+                        raise RuntimeError("amount must be a positive number of FUC") from None
+                    txid = run_cli(cli, wextra, "sendtoaddress", to, amount)
+                    self._send(200, json.dumps({"ok": True, "txid": txid}))
+                    return
+                if self.path == "/api/lookup":
+                    self._send(200, json.dumps(lookup(cli, extra, wextra, str(payload.get("q") or ""))))
+                    return
+                if self.path == "/api/backup":
+                    dest, name = _write_backup(cli, wextra, datadir)
+                    revealed = False
+                    if sys.platform == "darwin":
+                        subprocess.Popen(["open", "-R", str(dest)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        revealed = True
+                    self._send(
+                        200,
+                        json.dumps(
+                            {
+                                "ok": True,
+                                "path": str(dest),
+                                "name": name,
+                                "revealed": revealed,
+                            }
+                        ),
+                    )
                     return
             except RuntimeError as e:
                 self._send(400, json.dumps({"error": str(e)}))
@@ -201,7 +304,7 @@ def make_handler(cli: str, extra: list[str], wallet: str):
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Local BITFUC helper (127.0.0.1 only)")
+    p = argparse.ArgumentParser(description="Local BITFUC wallet (127.0.0.1 only)")
     p.add_argument("--cli", required=True)
     p.add_argument("--datadir", required=True)
     p.add_argument("--chain", choices=("regtest",), default="regtest")
@@ -213,10 +316,10 @@ def main() -> int:
         raise SystemExit("error: this helper only binds on this computer")
 
     extra = ["-regtest", f"-datadir={args.datadir}"]
-    httpd = ThreadingHTTPServer((args.host, args.port), make_handler(args.cli, extra, args.wallet))
+    httpd = ThreadingHTTPServer((args.host, args.port), make_handler(args.cli, extra, args.wallet, args.datadir))
     url = f"http://{args.host}:{args.port}/"
     print(f"Open {url}", flush=True)
-    print("This is not a public network. Close with Ctrl-C.", flush=True)
+    print("Wallet UI on this computer only. Close with Ctrl-C.", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

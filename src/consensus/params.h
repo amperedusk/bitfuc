@@ -6,6 +6,7 @@
 #ifndef BITCOIN_CONSENSUS_PARAMS_H
 #define BITCOIN_CONSENSUS_PARAMS_H
 
+#include <consensus/amount.h>
 #include <script/verify_flags.h>
 #include <uint256.h>
 
@@ -84,6 +85,19 @@ struct BIP9Deployment {
 struct Params {
     uint256 hashGenesisBlock;
     int nSubsidyHalvingInterval;
+    /** Classic (regtest) initial subsidy. Unused when nIssuingBlocks > 0. */
+    CAmount nInitialSubsidy{50 * COIN};
+    /**
+     * Public-net issuance length. If > 0, GetBlockSubsidy issues nMoneyCap
+     * evenly across these heights (≈2% of the cap per 262800-block year for
+     * 50 years at two-minute blocks), then zero. If 0, use the inherited
+     * halving schedule.
+     */
+    int nIssuingBlocks{0};
+    /** Hard cap for the public-net schedule. Must be ≤ MAX_MONEY. */
+    CAmount nMoneyCap{0};
+    /** Thousandths of transaction fees destroyed (20 = 2%). Miners claim the rest. */
+    int nFeeBurnPerMille{0};
     /**
      * Hashes of blocks that
      * - are known to be consensus valid, and
@@ -119,6 +133,13 @@ struct Params {
     bool fPowNoRetargeting;
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
+    /**
+     * ASERT half-life in seconds. If > 0, public nets use ASERT (D2) instead of
+     * Bitcoin's 2016-block retarget. 0 = inherited DAA (regtest).
+     */
+    int64_t nASERTHalfLife{0};
+    /** Public nets: RandomX(header) compared to nBits. Regtest: SHA-256d. */
+    bool fPowUseRandomX{false};
     std::chrono::seconds PowTargetSpacing() const
     {
         return std::chrono::seconds{nPowTargetSpacing};

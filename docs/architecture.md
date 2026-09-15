@@ -9,9 +9,6 @@ BITFUC is intended to be an independent Bitcoin-derived UTXO blockchain. **This 
 | Name | BITFUC |
 | Ticker | FUC |
 | Domain | [bitfuc.com](https://bitfuc.com) |
-| Tagline | The cryptocurrency nobody asked for. |
-| Joke | The name |
-| Not a joke | Consensus, supply, keys, P2P |
 
 BITFUC is experimental open-source software. It does not promise price, listings, or returns. See `docs/legal-notice.md`.
 
@@ -28,8 +25,8 @@ BITFUC is experimental open-source software. It does not promise price, listings
 ## Process architecture
 
 ```text
-User / miner
-    |  bitfuc-cli / getblocktemplate
+User / miner / program
+    |  bitfuc-cli / contrib/bitfuc/agent.py / getblocktemplate
     v
 bitfucd
     |-- P2P (BITFUC magic + ports only)
@@ -56,6 +53,7 @@ bitfucd
 | Node / P2P / RPC | Bitcoin Core, rebranded | 1–2 |
 | CPU/regtest mining | `generatetoaddress` / GBT | 1–2 |
 | CLI wallet | Descriptor wallet in `bitfucd` | 1, documented in 4 |
+| Agent / program helper | `contrib/bitfuc/agent.py` | same RPC, JSON stdout |
 | Explorer | New, RPC-backed | 7 |
 | Website | New, non-custodial | after node works |
 | DEX | Research only | 8 |
@@ -64,7 +62,7 @@ bitfucd
 
 Unless an open decision changes it:
 
-- SHA-256d block hash function (regtest; public nets pending D1)
+- SHA-256d block hash *identity* (always); RandomX public-net *puzzle* (D1); ASERT DAA on public nets (D2)
 - secp256k1 ECDSA and Schnorr
 - Script, SegWit, Taproot as shipped in v31.1
 - UTXO set, coinbase maturity 100
@@ -82,7 +80,8 @@ Unless an open decision changes it:
 ## Trust model
 
 - **Users** hold keys. The website must never receive seed phrases or private keys.
-- **Miners** produce blocks under the documented subsidy. No special developer block.
+- **Agents** are programs with the same constraint: keys in `bitfucd`, not on a website (`docs/agents.md`).
+- **Miners** produce blocks under the documented subsidy. No special developer or bot block.
 - **Seed operators** help discovery; they are not oracles for balances.
 - **Explorers** can lie; verify with your node.
 
@@ -94,5 +93,6 @@ Unless an open decision changes it:
 | `docs/implementation-plan.md` | Build order |
 | `docs/open-decisions.md` | Protocol choices that require an explicit stop |
 | `docs/legal-notice.md` | Non-investment / experimental software |
+| `docs/agents.md` | Programs mining and paying without a hosted account |
 
 Docs listed in the project brief (`genesis.md`, `mining.md`, `consensus.md`, …) will be written when the corresponding behavior exists. Empty stub files that pretend those subsystems exist will not be added.

@@ -166,6 +166,7 @@ target_link_libraries(test_bitcoin
   bitcoin_consensus
   minisketch
   secp256k1
+  randomx
   Boost::headers
   libevent::extra
   $<TARGET_NAME_IF_EXISTS:USDT::headers>

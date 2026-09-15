@@ -272,10 +272,10 @@ No genesis exists. When generated, it must be:
 3. **Unspendable coinbase** unless a later, explicit decision says otherwise. Bitcoin’s genesis coinbase is not in the UTXO set; BITFUC should keep that property so genesis is **not** a developer premine.
 4. Documented in `docs/genesis.md` with: version, timestamp, nBits, nonce, previous hash (`0x00…`), merkle root, block hash, coinbase message, and the exact generation command/commit.
 
-Suggested coinbase (humorous, original, not a Times headline):
+Suggested coinbase:
 
 ```text
-BITFUC — The cryptocurrency nobody asked for.
+BITFUC
 ```
 
 Do not generate mainnet genesis until monetary policy, PoW, and difficulty adjustment are decided. Regtest genesis can be generated earlier because regtest is local and resettable.

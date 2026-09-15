@@ -922,9 +922,6 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     // ********************************************************* Step 2: parameter interactions
 
     ChainType chain = args.GetChainType();
-    if (chain == ChainType::MAIN) {
-        return InitError(_("BITFUC mainnet genesis is not frozen and must not be mined. Use -regtest (or -chain=bitfuc-regtest) for local development, or -testnet for the unpublished test chain. See docs/open-decisions.md and docs/launch.md."));
-    }
     if (chain == ChainType::SIGNET || chain == ChainType::TESTNET4) {
         return InitError(_("BITFUC does not provide Bitcoin signet or testnet4. Use -regtest or -testnet."));
     }
