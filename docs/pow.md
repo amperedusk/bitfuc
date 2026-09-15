@@ -35,7 +35,8 @@ Public nets use **aserti3-2d**.
 | Regtest | Bitcoin 2016-block DAA, `nASERTHalfLife = 0` |
 
 Genesis compact target is easy (`0x207fffff`); ASERT raises difficulty when
-blocks arrive faster than two minutes.
+blocks arrive faster than two minutes. The retarget multiply is split so an
+easy `powLimit` cannot wrap a 256-bit integer.
 
 ## What this is not
 

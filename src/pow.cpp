@@ -47,8 +47,17 @@ static arith_uint256 CalculateASERT(const arith_uint256& refTarget,
         + (1ull << 47)
         ) >> 48);
 
-    arith_uint256 nextTarget = refTarget * factor;
-    shifts -= 16;
+    // nextTarget = refTarget * factor / 2^16. Split the multiply so an easy
+    // powLimit (~2^255) cannot wrap a 256-bit integer and collapse to a
+    // near-impossible target (that made public-chain "Mine" look stuck).
+    const arith_uint256 hi = refTarget >> 16;
+    const uint64_t lo = refTarget.GetLow64() & 0xFFFFull;
+    arith_uint256 nextTarget = hi * factor;
+    if (factor != 0 && hi != 0 && nextTarget / factor != hi) {
+        nextTarget = powLimit;
+    } else {
+        nextTarget += arith_uint256((lo * factor) >> 16);
+    }
     if (shifts > 256) {
         nextTarget = powLimit;
     } else if (shifts < -256) {

@@ -144,7 +144,7 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
             left = n
             while left > 0:
                 chunk = min(5, left)
-                run_cli(cli, wextra, "generatetoaddress", str(chunk), addr)
+                run_cli(cli, wextra, "generatetoaddress", str(chunk), addr, timeout=None)
                 left -= chunk
                 with mine_lock:
                     mine_job["done"] = n - left
@@ -183,6 +183,25 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                     addr = rec[0]["address"] if rec else run_cli(cli, wextra, "getnewaddress", timeout=8)
                     txs = run_json(cli, wextra, "listtransactions", "*", "25", timeout=8) or []
                 except RuntimeError as e:
+                    with mine_lock:
+                        job = dict(mine_job)
+                    if job.get("running"):
+                        self._send(
+                            200,
+                            json.dumps(
+                                {
+                                    "chain": None,
+                                    "blocks": None,
+                                    "connections": None,
+                                    "trusted": None,
+                                    "immature": None,
+                                    "address": "",
+                                    "transactions": [],
+                                    "mining": job,
+                                }
+                            ),
+                        )
+                        return
                     self._send(503, json.dumps({"error": str(e)}))
                     return
                 mine = bal.get("mine", {})

@@ -199,20 +199,22 @@ async function showLookup(q) {
 }
 async function refresh() {
   const s = await api("/api/status");
-  const main = s.chain === "main";
-  document.title = main ? "BITFUC wallet (main)" : "BITFUC wallet";
-  $("sub").textContent = main
-    ? "Public chain on this computer. Addresses start with fuc1. Not the starter UI."
-    : "On this computer only. Keys stay in bitfucd. This is not bitfuc.com.";
-  $("minehint").innerHTML = main
-    ? "This is bitfuc-main. Mining is a race against whoever else is connected. The whole ~76 FUC goes to the finder of that block. Wait 100 extra blocks before spending a mining reward."
-    : "This starter wallet is a private chain on <em>this</em> computer. You are the only miner, so the buttons usually succeed. That is practice, not public FUC.";
-  $("to").placeholder = main ? "fuc1…" : "fucrt1…";
-  $("height").textContent = s.blocks;
+  if (s.chain) {
+    const main = s.chain === "main";
+    document.title = main ? "BITFUC wallet (main)" : "BITFUC wallet";
+    $("sub").textContent = main
+      ? "Public chain on this computer. Addresses start with fuc1. Not the starter UI."
+      : "On this computer only. Keys stay in bitfucd. This is not bitfuc.com.";
+    $("minehint").innerHTML = main
+      ? "This is bitfuc-main. Mining is a race against whoever else is connected. The whole ~76 FUC goes to the finder of that block. Wait 100 extra blocks before spending a mining reward."
+      : "This starter wallet is a private chain on <em>this</em> computer. You are the only miner, so the buttons usually succeed. That is practice, not public FUC.";
+    $("to").placeholder = main ? "fuc1…" : "fucrt1…";
+  }
+  $("height").textContent = (s.blocks == null) ? "…" : s.blocks;
   $("peers").textContent = (s.connections == null) ? "…" : s.connections;
-  $("trusted").textContent = s.trusted;
-  $("immature").textContent = s.immature;
-  $("addr").textContent = s.address;
+  if (s.trusted != null) $("trusted").textContent = s.trusted;
+  if (s.immature != null) $("immature").textContent = s.immature;
+  if (s.address) $("addr").textContent = s.address;
   $("tip").textContent = s.bestblockhash ? ("Tip " + s.bestblockhash) : "";
   $("tip").dataset.h = s.bestblockhash || "";
   const mining = s.mining || {};

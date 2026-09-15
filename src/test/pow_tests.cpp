@@ -212,6 +212,11 @@ BOOST_AUTO_TEST_CASE(bitfuc_asert_retargets)
     BOOST_CHECK(t_fast <= t_on);
     BOOST_CHECK(t_slow >= t_on);
     BOOST_CHECK(DeriveTarget(t_on.GetCompact(), consensus.powLimit).has_value());
+    const auto pow_bits = UintToArith256(consensus.powLimit).bits();
+    arith_uint256 t_from_genesis;
+    t_from_genesis.SetCompact(GetNextWorkRequired(&genesis, &next, consensus));
+    BOOST_CHECK_GE(t_from_genesis.bits(), pow_bits - 1);
+    BOOST_CHECK_GE(t_on.bits(), pow_bits - 1);
 }
 
 void sanity_check_chainparams(const ArgsManager& args, ChainType chain_type)

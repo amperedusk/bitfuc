@@ -12,7 +12,9 @@ source "$ROOT/scripts/regtest/common.sh"
 find_binaries
 
 if ! "$BITFUCCLI" -datadir="$DATADIR" -rpcwallet=miner getwalletinfo >/dev/null 2>&1; then
-  "$BITFUCCLI" -datadir="$DATADIR" createwallet miner >/dev/null
+  if ! "$BITFUCCLI" -datadir="$DATADIR" loadwallet miner >/dev/null 2>&1; then
+    "$BITFUCCLI" -datadir="$DATADIR" createwallet miner >/dev/null
+  fi
 fi
 ADDR="$("$BITFUCCLI" -datadir="$DATADIR" -rpcwallet=miner getnewaddress)"
 echo "ADDRESS=$ADDR"
