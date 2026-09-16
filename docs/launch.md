@@ -18,12 +18,12 @@ until independent operators list `addnode` hosts in `docs/mainnet-peers.md`.
 Public clone: https://github.com/amperedusk/bitfuc
 
 How to run the public chain: `docs/mainnet.md`. Volunteer P2P list:
-`docs/mainnet-peers.md` (empty until two independent hosts exist).
+`docs/mainnet-peers.md` (one Contabo relay published; a second independent host still wanted).
 
 ## Operators still supply
 
-- [ ] At least two independently operated nodes, published, not a single VPS
-      pretending to be a network (`docs/mainnet-peers.md` stays empty until then)
+- [x] At least one public `addnode` host (`13.140.133.55:17333` in `docs/mainnet-peers.md`)
+- [ ] A second independently operated node (different person / account), then seeds can follow
 
 ## Never a launch
 
