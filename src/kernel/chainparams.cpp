@@ -5,6 +5,7 @@
 
 #include <kernel/chainparams.h>
 
+#include <chainparamsseeds.h>
 #include <consensus/amount.h>
 #include <consensus/merkle.h>
 #include <consensus/params.h>
@@ -140,7 +141,7 @@ public:
 
         bech32_hrp = "fuc";
 
-        vFixedSeeds.clear();
+        vFixedSeeds.assign(std::begin(chainparams_seed_main), std::end(chainparams_seed_main));
 
         fDefaultConsistencyChecks = false;
         m_is_mockable_chain = false;

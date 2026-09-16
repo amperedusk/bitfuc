@@ -14,6 +14,7 @@ echo "P2P 17333 is public. RPC is 127.0.0.1 only."
 
 if "$BITFUCCLI" -datadir="$DATADIR" getblockchaininfo >/dev/null 2>&1; then
   echo "already running"
+  "$BITFUCCLI" -datadir="$DATADIR" addnode 13.140.133.55:17333 add >/dev/null 2>&1 || true
 else
   "$BITFUCD" -daemon \
     -datadir="$DATADIR" \
@@ -24,7 +25,7 @@ else
     -rpcbind=127.0.0.1 \
     -rpcallowip=127.0.0.1 \
     -dnsseed=0 \
-    -fixedseeds=0 \
+    -addnode=13.140.133.55:17333 \
     -listenonion=0 \
     -fallbackfee=0.0002
   for _ in $(seq 1 80); do
@@ -43,7 +44,7 @@ if [[ "$GENESIS" != "a1d32d9f62f1d1d2f9115a2a36bb35bf15a44b2e603003ca394c159b675
   exit 1
 fi
 echo "P2P listen: 0.0.0.0:17333  RPC: 127.0.0.1 (cookie in $DATADIR)"
-echo "Peers: bitfuc-cli -datadir=$DATADIR addnode HOST:17333 add"
+echo "Default peer: 13.140.133.55:17333 (also baked into fixed seeds after rebuild)"
 echo "Wallet:  bitfuc-cli -datadir=$DATADIR createwallet miner"
 echo "Forward TCP 17333 if this host is behind NAT. Do not forward RPC."
 echo "A second independent machine must run this script. Two processes on one box are not two operators."

@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(not_bitcoin_genesis)
     BOOST_CHECK(main->GetConsensus().hashGenesisBlock != uint256{"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"});
     BOOST_CHECK(reg->GenesisBlock().hashMerkleRoot != uint256{"4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"});
     BOOST_CHECK(main->DNSSeeds().empty());
-    BOOST_CHECK(main->FixedSeeds().empty());
+    BOOST_CHECK_EQUAL(main->FixedSeeds().size(), 8); // one BIP155 IPv4 seed (network+len+4+port)
 }
 
 BOOST_AUTO_TEST_CASE(not_bitcoin_address_hrp)

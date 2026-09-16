@@ -18,15 +18,16 @@ Public-chain wallet page on this computer: `./scripts/ui/start-mainnet.sh`
 That binds P2P on `0.0.0.0:17333` and RPC on `127.0.0.1`. If you are behind
 NAT, forward **TCP 17333** only. Never forward RPC.
 
-Join a peer (when someone publishes one in `docs/mainnet-peers.md`):
+Current builds include a fixed seed and `start-operator.sh` adds
+`13.140.133.55:17333` automatically so a fresh node can sync without chatting
+for an IP. Manual join still works:
 
 ```bash
-./build/bin/bitfuc-cli -datadir="$HOME/.bitfuc-main-operator" addnode HOST:17333 add
+./build/bin/bitfuc-cli -datadir="$HOME/.bitfuc-main-operator" addnode 13.140.133.55:17333 add
 ```
 
-Seeds in the binary are empty on purpose. A network of one laptop is a private
-chain. Two independent operators, reachable, then this table can grow. Two
-`bitfucd` processes on the same computer do not count.
+Volunteer list: `docs/mainnet-peers.md`. Two `bitfucd` processes on the same
+computer do not count as two operators.
 
 ## Mine
 
