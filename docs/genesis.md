@@ -64,3 +64,29 @@ Header `nBits` is also pushed in the coinbase.
 | Bech32 HRP | `fuc` |
 
 Changing these bytes after people have synced is a new coin.
+
+## Freeze record (bitfuc-main)
+
+Published so a second operator can check that their node agrees before they
+mine or accept a payment.
+
+| Field | Value |
+| --- | --- |
+| Genesis hash | `a1d32d9f62f1d1d2f9115a2a36bb35bf15a44b2e603003ca394c159b6758533a` |
+| Genesis nTime | `1757948400` (2025-09-15 15:00:00 UTC) |
+| Genesis nBits | `0x207fffff` |
+| Genesis nNonce | `1` |
+| Genesis nVersion | `1` |
+| First mined block (height 1) | 2026-09-15 16:30:56 UTC |
+| Puzzle | RandomX of the 80-byte header; block identity SHA-256d |
+| Difficulty rule | aserti3-2d, 2-minute spacing, 2-day half-life, genesis anchor |
+| Money rule | 1e9 FUC cap, ~76.10 FUC per block for 13,140,000 heights, 2% fee burn |
+| Source commit | `7db86be85212d32930b01263edf7317a8f8fafbb` |
+
+Check your own build against it:
+
+```bash
+./build/bin/bitfuc-cli -datadir="$HOME/.bitfuc-main-operator" getblockhash 0
+```
+
+A node that prints a different hash is not on this chain.

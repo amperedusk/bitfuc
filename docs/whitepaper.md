@@ -62,7 +62,7 @@ We do not claim that BITFUC is legal tender, that FUC has or will have exchange 
 
 **Script and Taproot.** Bitcoin’s script system, SegWit (BIP141), and Taproot (BIP340/341/342) are used as shipped in Core 31.1. We do not propose a new opcode.
 
-**Altcoins as reparameterizations.** Most “new coins” are Bitcoin’s construction with a different genesis and, sometimes, a different puzzle or retarget. Intellectual honesty requires saying so. BITFUC is in that class. Its distinction, if any, is *identification and policy*: a disjoint identity, an unspendable genesis, empty seeds, and keys that never live on the website.
+**Altcoins as reparameterizations.** Most “new coins” are Bitcoin’s construction with a different genesis and, sometimes, a different puzzle or retarget. Intellectual honesty requires saying so. BITFUC is in that class. Its distinction, if any, is *identification and policy*: a disjoint identity, an unspendable genesis, no DNS seeds, and keys that never live on the website.
 
 ---
 
@@ -108,7 +108,7 @@ Electronic cash is the problem of maintaining a *public* \(V\) that updates with
 
 ### 4.2 Why “alternative money” is a property of use, not of a repository
 
-A protocol can at most supply a *candidate* bearer instrument. Whether it is money is a fact about *acceptance*: do counterparties extinguish debts in it? That fact is empirical and, for BITFUC, presently false. There is no public chain, no observed price, and no claim of legal-tender status. Sections 5–7 describe the candidate. Section 13 repeats the restriction.
+A protocol can at most supply a *candidate* bearer instrument. Whether it is money is a fact about *acceptance*: do counterparties extinguish debts in it? That fact is empirical and, for BITFUC, presently false. A public chain now exists and produces blocks, but there is no observed price, no market, and no claim of legal-tender status. Sections 5–7 describe the candidate. Section 13 repeats the restriction.
 
 ---
 
@@ -288,7 +288,7 @@ Units, if a public chain is launched under this policy, enter \(U\) only as matu
 | --- | --- |
 | `bitfuc-regtest` | Laboratory. Instant blocks. Identity frozen for development; resettable. |
 | `bitfuc-test` | Intended public test; **test units have no value.** Not operating as a public net at the date of this paper. |
-| `bitfuc-main` | Intended public net. **Not frozen. Process will not start.** |
+| `bitfuc-main` | Public net. Genesis frozen; see `docs/genesis.md`. |
 
 ### 10.2 Magics and ports
 
@@ -315,11 +315,13 @@ Reproduce with `python3 contrib/bitfuc/genesis.py`. The generator first reproduc
 | Merkle root | `bfe26f333a0be506cd4739fec4c079c36245b1a71fced05fd1175bfecd0a530c` |
 | Block hash | `36dd99e42f28638b0c4c26c43c4c57ec9edba5fb713011b0795df00d067329d5` |
 
-Testnet and draft main genesis bytes are recorded in `docs/genesis.md`. Draft main `nBits` is a placeholder. Mining it is not a launch.
+Testnet and public main genesis bytes, and the main freeze record, are in `docs/genesis.md`. Public main genesis hash is `a1d32d9f62f1d1d2f9115a2a36bb35bf15a44b2e603003ca394c159b6758533a`. Changing those bytes now would be a different coin.
 
 ### 10.4 Seeds and infrastructure
 
-DNS seeds and fixed seeds are empty. A single unpublished VPS is not part of the design. Discovery on regtest is `addnode`. A public net, if launched, must not depend on one operator to validate or to mine.
+DNS seeds are empty. One bootstrap peer is published in `docs/mainnet-peers.md` and compiled in as a fixed seed, so a new node can find the chain without asking anyone for an address. That is a liveness convenience, not a validation authority: a node that cannot reach it still validates normally once any peer is supplied with `addnode`, and the seed cannot create, censor, or reverse a block.
+
+It is also an honest single point of bootstrap. Until a second independently operated node publishes an address, discovery depends on one host, and this paper does not claim discovery is decentralized. Adding independent operators is the fix; removing the seed without replacing it only makes first contact harder.
 
 Checkpoints, `assumevalid`, and AssumeUTXO snapshots contain **no Bitcoin state**. Importing Bitcoin’s assumevalid would cause a BITFUC node to skip validation toward the wrong coin.
 
@@ -411,8 +413,8 @@ cmake --build build --target bitfuc
 | Field | Value |
 | --- | --- |
 | Title | BITFUC: An Independently Identified Instance of Nakamoto Electronic Cash |
-| Date | 2026-08-22 |
-| Version | 0.1 (working paper) |
+| Date | 2026-09-18 |
+| Version | 0.2 (working paper) |
 | Canonical file | `docs/whitepaper.md` |
 | Website rendering | `/whitepaper` |
 | Supersedes | none |

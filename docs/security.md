@@ -34,12 +34,15 @@ Testnet allows min-difficulty blocks. Anyone with a laptop can rewrite it.
 
 ## Nodes, seeds, assumevalid
 
-DNS seeds and fixed seeds are empty. There is no public peer list that this
-project operates. `nMinimumChainWork` and `defaultAssumeValid` are zero.
-Nobody should `-assumevalid` a foreign hash.
+DNS seeds are empty. One bootstrap peer is published in `docs/mainnet-peers.md`
+and compiled in as a fixed seed. It relays; it does not mine, validate on your
+behalf, or hold keys. A node that cannot reach it still validates normally once
+any peer is supplied with `addnode`. `nMinimumChainWork` and
+`defaultAssumeValid` are zero. Nobody should `-assumevalid` a foreign hash.
 
-A network of one operator is not decentralized. Publish seeds only when at
-least two independent machines have held a tip (`docs/mainnet-peers.md`).
+A network of one bootstrap host is not decentralized discovery. Treat it as a
+liveness dependency until a second independently operated node publishes an
+address, then more seeds can follow.
 
 ## Wallets and keys
 
