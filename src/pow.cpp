@@ -81,26 +81,49 @@ static arith_uint256 CalculateASERT(const arith_uint256& refTarget,
     return nextTarget;
 }
 
+/**
+ * Walk back to `height`, preferring the skiplist. GetAncestor asserts on pprev
+ * when pskip is missing, which synthetic fuzz indexes do not populate, so this
+ * stops at the lowest reachable block instead of aborting.
+ */
+static const CBlockIndex* AncestorOrLowest(const CBlockIndex* pindex, int height)
+{
+    while (pindex->nHeight > height && pindex->pprev) {
+        const CBlockIndex* skip = pindex->pskip;
+        pindex = (skip && skip->nHeight >= height) ? skip : pindex->pprev;
+    }
+    return pindex;
+}
+
 static unsigned int GetNextASERTWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
-    unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
+    // The floor is a function of the height being solved, not of the tip.
+    const int nHeightNext = pindexLast->nHeight + 1;
+    const bool fForked = params.nASERTForkHeight > 0 &&
+                         nHeightNext >= params.nASERTForkHeight &&
+                         !params.powLimitPostFork.IsNull();
+    const arith_uint256 powLimit = UintToArith256(params.PowLimitAtHeight(nHeightNext));
+    const unsigned int nProofOfWorkLimit = powLimit.GetCompact();
     if (params.fPowAllowMinDifficultyBlocks && pblock &&
         pblock->GetBlockTime() > pindexLast->GetBlockTime() + params.nPowTargetSpacing * 2) {
         return nProofOfWorkLimit;
     }
 
-    // Genesis nBits/nTime are the ASERT anchor. Walk pprev so incomplete fuzz
-    // indexes cannot trip GetAncestor's pprev assert.
-    const CBlockIndex* pindexAnchor = pindexLast;
-    while (pindexAnchor->pprev && pindexAnchor->nHeight > 0) {
-        pindexAnchor = pindexAnchor->pprev;
-    }
-
+    const CBlockIndex* pindexAnchor;
     arith_uint256 refTarget;
-    refTarget.SetCompact(pindexAnchor->nBits);
-    const arith_uint256 powLimit = UintToArith256(params.powLimit);
-    if (refTarget == 0 || refTarget > powLimit) {
+    if (fForked) {
+        // Re-anchor on the last pre-fork block and restart from the new floor.
+        // Its timestamp is real, so nTimeDiff below no longer carries genesis'
+        // one-year head start.
+        pindexAnchor = AncestorOrLowest(pindexLast, params.nASERTForkHeight - 1);
         refTarget = powLimit;
+    } else {
+        // Genesis nBits/nTime are the original anchor.
+        pindexAnchor = AncestorOrLowest(pindexLast, 0);
+        refTarget.SetCompact(pindexAnchor->nBits);
+        if (refTarget == 0 || refTarget > powLimit) {
+            refTarget = powLimit;
+        }
     }
 
     const int64_t nTimeDiff = pindexLast->GetBlockTime() - pindexAnchor->GetBlockTime();

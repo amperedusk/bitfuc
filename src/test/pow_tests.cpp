@@ -219,6 +219,78 @@ BOOST_AUTO_TEST_CASE(bitfuc_asert_retargets)
     BOOST_CHECK_GE(t_on.bits(), pow_bits - 1);
 }
 
+/**
+ * Genesis-anchored ASERT could not raise difficulty on bitfuc-main, because
+ * genesis nTime predates the first mined block by a year and the resulting
+ * block deficit pinned the target to powLimit. Past nASERTForkHeight the
+ * anchor moves to the last pre-fork block and the floor tightens.
+ */
+BOOST_AUTO_TEST_CASE(bitfuc_asert_refork_tightens_target)
+{
+    const auto consensus = CreateChainParams(*m_node.args, ChainType::MAIN)->GetConsensus();
+    BOOST_CHECK_GT(consensus.nASERTForkHeight, 0);
+    BOOST_CHECK(!consensus.powLimitPostFork.IsNull());
+
+    const arith_uint256 old_limit = UintToArith256(consensus.powLimit);
+    const arith_uint256 new_limit = UintToArith256(consensus.powLimitPostFork);
+    // The fork is only meaningful if the new floor actually costs more work.
+    BOOST_CHECK(new_limit < old_limit);
+    BOOST_CHECK_EQUAL(consensus.PowLimitAtHeight(consensus.nASERTForkHeight - 1), consensus.powLimit);
+    BOOST_CHECK_EQUAL(consensus.PowLimitAtHeight(consensus.nASERTForkHeight), consensus.powLimitPostFork);
+
+    // Reproduce the bug's shape: genesis a year before the chain moved, then
+    // blocks arriving far faster than the two-minute target.
+    const int64_t genesis_time = 1'757'948'400;
+    const int64_t launch_time = genesis_time + 365 * 24 * 60 * 60;
+
+    std::vector<std::unique_ptr<CBlockIndex>> chain;
+    CBlockIndex* prev = nullptr;
+    const int last_height = consensus.nASERTForkHeight + 400;
+    for (int height = 0; height <= last_height; ++height) {
+        auto& index = *chain.emplace_back(std::make_unique<CBlockIndex>());
+        index.nHeight = height;
+        index.pprev = prev;
+        // One second per block: hopelessly ahead of a 120-second target.
+        index.nTime = height == 0 ? genesis_time : launch_time + height;
+        index.nBits = prev ? GetNextWorkRequired(prev, nullptr, consensus)
+                           : old_limit.GetCompact();
+        index.BuildSkip();
+        prev = &index;
+    }
+
+    // Compact encoding truncates the mantissa, so compare against what a
+    // floor actually round-trips to rather than the raw uint256.
+    arith_uint256 old_floor, new_floor;
+    old_floor.SetCompact(old_limit.GetCompact());
+    new_floor.SetCompact(new_limit.GetCompact());
+
+    // Below the fork the old rule still applies, so difficulty never left the
+    // genesis floor. This is the behaviour the existing chain was built under.
+    arith_uint256 pre_fork;
+    pre_fork.SetCompact(chain.at(consensus.nASERTForkHeight - 1)->nBits);
+    BOOST_CHECK_EQUAL(pre_fork, old_floor);
+
+    // At the fork the target drops to the new floor (a hair under it, since
+    // ASERT already sees the first block as early), and keeps falling while
+    // blocks stay fast.
+    arith_uint256 at_fork, after_fork;
+    at_fork.SetCompact(chain.at(consensus.nASERTForkHeight)->nBits);
+    after_fork.SetCompact(chain.at(last_height)->nBits);
+    BOOST_CHECK(at_fork <= new_floor);
+    BOOST_CHECK(at_fork > new_floor / 2);
+    BOOST_CHECK(after_fork < at_fork);
+    // The whole point: the fork must be a real difficulty increase.
+    BOOST_CHECK(at_fork < old_floor);
+
+    // The floor is a ceiling on the target: fast blocks may go below it, but
+    // nothing pushes back above it once the fork is active.
+    for (int height = consensus.nASERTForkHeight; height <= last_height; ++height) {
+        arith_uint256 target;
+        target.SetCompact(chain.at(height)->nBits);
+        BOOST_CHECK(target <= new_floor);
+    }
+}
+
 void sanity_check_chainparams(const ArgsManager& args, ChainType chain_type)
 {
     const auto chainParams = CreateChainParams(args, chain_type);

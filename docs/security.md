@@ -23,9 +23,17 @@ thin air.
 
 ## Difficulty (D2)
 
-Public nets use ASERT (2-minute spacing, 2-day half-life, genesis anchor).
-That stops the “hashrate spike then stall” failure of Bitcoin’s 2016-block DAA
-on a new chain. It does not stop a majority attacker.
+Public nets use ASERT (2-minute spacing, 2-day half-life). That stops the
+“hashrate spike then stall” failure of Bitcoin’s 2016-block DAA on a new chain.
+It does not stop a majority attacker.
+
+Anchoring ASERT on genesis did not work on `bitfuc-main`: genesis `nTime` is a
+year before the chain started, so the rule read a ~262,000 block deficit and
+held the target at `powLimit` for 2,999 blocks, where a block cost about two
+RandomX hashes. Difficulty is re-anchored from height 3000 with a floor of
+`0x1f0fffff` (`docs/pow.md`). Anyone auditing the early chain should know those
+blocks carry almost no work, and `nMinimumChainWork` is zero, so the pre-3000
+history is cheap to rewrite by design of the mistake, not by choice.
 
 Regtest keeps the inherited DAA and a trivial target. Anyone with the datadir
 can rewrite it. That is the laboratory.

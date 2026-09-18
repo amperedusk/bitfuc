@@ -87,11 +87,20 @@ public:
         consensus.CSVHeight = 1;
         consensus.SegwitHeight = 0;
         consensus.MinBIP9WarningHeight = 0;
-        // Easy compact target; ASERT raises difficulty if blocks are fast.
+        // Genesis-era floor. Kept so blocks below nASERTForkHeight, whose nBits
+        // is this value, still pass CheckProofOfWork on a reindex.
         consensus.powLimit = uint256{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
         consensus.nPowTargetTimespan = 2016 * 2 * 60; // 2016 two-minute blocks ≈ 2.8 days (unused when ASERT)
         consensus.nPowTargetSpacing = 2 * 60;
         consensus.nASERTHalfLife = 2 * 24 * 60 * 60; // 2-day half-life
+        // Genesis nTime is 2025-09-15 while block 1 was mined 2026-09-15, so
+        // ASERT anchored on genesis saw a ~262,000 block deficit, demanded an
+        // easier target every block, and sat on powLimit: no work per block.
+        // From this height ASERT anchors on the last pre-fork block instead,
+        // and the floor below costs ~4,096 RandomX hashes (about a minute of
+        // one CPU thread) rather than ~2.
+        consensus.nASERTForkHeight = 3000;
+        consensus.powLimitPostFork = uint256{"000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
         consensus.fPowUseRandomX = true;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.enforce_BIP94 = false;

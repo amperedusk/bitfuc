@@ -138,6 +138,30 @@ struct Params {
      * Bitcoin's 2016-block retarget. 0 = inherited DAA (regtest).
      */
     int64_t nASERTHalfLife{0};
+    /**
+     * Height at which ASERT stops anchoring on genesis (0 = never).
+     *
+     * bitfuc-main genesis carries an nTime one year before the chain actually
+     * started producing blocks. Anchored on genesis, ASERT measured a deficit
+     * of ~262,000 blocks against the two-minute schedule, asked for an easier
+     * target every block, and clamped to powLimit forever, so blocks cost no
+     * work. From this height the anchor is the block at nASERTForkHeight - 1
+     * and the floor is powLimitPostFork. Blocks below this height keep the
+     * original rule so existing history stays valid.
+     */
+    int nASERTForkHeight{0};
+    /**
+     * Difficulty floor from nASERTForkHeight onward. Null keeps powLimit.
+     * powLimit itself must stay as it was, or historical blocks whose nBits
+     * exceed the new floor would fail CheckProofOfWork on a reindex.
+     */
+    uint256 powLimitPostFork{};
+    /** Floor in force for the block at `height`. */
+    const uint256& PowLimitAtHeight(int height) const
+    {
+        const bool forked{nASERTForkHeight > 0 && height >= nASERTForkHeight && !powLimitPostFork.IsNull()};
+        return forked ? powLimitPostFork : powLimit;
+    }
     /** Public nets: RandomX(header) compared to nBits. Regtest: SHA-256d. */
     bool fPowUseRandomX{false};
     std::chrono::seconds PowTargetSpacing() const

@@ -26,6 +26,58 @@ How to run the public chain: `docs/mainnet.md`. Volunteer P2P list:
 - [x] At least one public peer (`13.140.133.55:17333`, also a fixed seed in current builds)
 - [ ] A second independently operated node (different person / account), then more seeds can follow
 
+## Before height 3000: every node must be rebuilt
+
+Difficulty is re-anchored at height 3000 (`docs/pow.md`). A node still running a
+build from before that change computes the old, easier `nBits` for height 3000
+and will reject the correct block as `bad-diffbits`, and vice versa. That is a
+chain split between old and new builds.
+
+Do this on **every** machine that runs `bitfucd`, including the relay, while the
+tip is still below 3000:
+
+```bash
+git pull
+cmake --build build --target bitfuc
+./build/bin/bitfuc-cli -datadir="$DATADIR" stop
+./scripts/mainnet/start-operator.sh
+```
+
+Do not mine past height 2999 until the relay is also rebuilt. Confirm the fork
+took effect once the tip passes 3000:
+
+```bash
+./build/bin/bitfuc-cli -datadir="$DATADIR" getblockchaininfo | grep -E '"bits"|"blocks"'
+```
+
+`bits` must no longer be `207fffff`.
+
+## Before height 3000: every node must be rebuilt
+
+Difficulty is re-anchored at height 3000 (`docs/pow.md`). A node still running a
+build from before that change computes the old, easier `nBits` for height 3000
+and will reject the correct block as `bad-diffbits`, and vice versa. That is a
+chain split between old and new builds.
+
+Do this on **every** machine that runs `bitfucd`, including the relay, while the
+tip is still below 3000:
+
+```bash
+git pull
+cmake --build build --target bitfuc
+./build/bin/bitfuc-cli -datadir="$DATADIR" stop
+./scripts/mainnet/start-operator.sh
+```
+
+Do not mine past height 2999 until the relay is also rebuilt. Confirm the fork
+took effect once the tip passes 3000:
+
+```bash
+./build/bin/bitfuc-cli -datadir="$DATADIR" getblockchaininfo | grep -E '"bits"|"blocks"'
+```
+
+`bits` must no longer be `207fffff`.
+
 ## Never a launch
 
 - Merge-mining with Bitcoin
