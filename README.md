@@ -12,8 +12,13 @@ cd bitfuc
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
 cmake --build build --target bitfuc
 # binaries: build/bin/bitfucd  build/bin/bitfuc-cli
-./scripts/regtest/acceptance.sh
+./scripts/ui/start-mainnet.sh
+# public chain wallet: http://127.0.0.1:8766
 ```
+
+That is **bitfuc-main** (addresses `fuc1…`, P2P 17333). How to run it: `docs/mainnet.md`. A current build tries the volunteer relay automatically.
+
+`./scripts/regtest/acceptance.sh` is a **local dummy chain** on this computer (fake coins). Use it to check a build, not to join the public net.
 
 There are no fake balances, fake blocks, or fake markets in this tree.
 
@@ -31,7 +36,7 @@ There are no fake balances, fake blocks, or fake markets in this tree.
 | [docs/testnet.md](docs/testnet.md) | Public test chain; TEST COINS — NO VALUE |
 | [docs/testnet-peers.md](docs/testnet-peers.md) | Optional testnet volunteers (empty until someone lists one) |
 | [docs/mainnet.md](docs/mainnet.md) | Public chain operator path |
-| [docs/mainnet-peers.md](docs/mainnet-peers.md) | Optional mainnet volunteers (empty until two independent hosts) |
+| [docs/mainnet-peers.md](docs/mainnet-peers.md) | Volunteer relay; a second independent host still wanted |
 | [docs/reproducible-builds.md](docs/reproducible-builds.md) | cmake flags and SHA-256 records |
 | [docs/monetary-policy.md](docs/monetary-policy.md) | 1e9 FUC cap, 2-minute blocks, 0.010 bit/vB fees, 2% fee burn |
 | [docs/wallet.md](docs/wallet.md) | Descriptor wallet in `bitfucd` (no web wallet) |

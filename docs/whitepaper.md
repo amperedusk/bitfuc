@@ -401,8 +401,10 @@ Whether anyone treats FUC as money is a social and legal question, not a lemma o
 python3 contrib/bitfuc/genesis.py
 cmake -B build -DENABLE_IPC=OFF -DBUILD_GUI=OFF -DINSTALL_MAN=OFF
 cmake --build build --target bitfuc
-./scripts/regtest/acceptance.sh
+./scripts/ui/start-mainnet.sh
 ```
+
+That starts **bitfuc-main**. `./scripts/regtest/acceptance.sh` is a local dummy chain (fake coins) to check a build.
 
 `cmake --build build --target bitfuc` writes `bitfucd` / `bitfuc-cli`.
 
