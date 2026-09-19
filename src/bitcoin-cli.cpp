@@ -913,8 +913,10 @@ static UniValue CallRPC(BaseRequestHandler* rh, const std::string& strMethod, co
             responseErrorMessage = strprintf(" (error code %d - \"%s\")", response.error, http_errorstring(response.error));
         }
         throw CConnectionFailed(strprintf("Could not connect to the server %s:%d%s\n\n"
-                    "Make sure the bitcoind server is running and that you are connecting to the correct RPC port.\n"
-                    "Use \"bitcoin-cli -help\" for more info.",
+                    "bitfucd is not answering RPC. It may be stopped, still loading the chain, or the computer was asleep.\n"
+                    "Start it with ./scripts/ui/start-mainnet.sh (or ./scripts/mainnet/start-operator.sh).\n"
+                    "If you use a custom datadir, pass -datadir (operator default: $HOME/.bitfuc-main-operator).\n"
+                    "Help: bitfuc-cli -help",
                     host, port, responseErrorMessage));
     } else if (response.status == HTTP_UNAUTHORIZED) {
         if (failedToGetAuthCookie) {
@@ -972,8 +974,10 @@ static UniValue ConnectAndCallRPC(BaseRequestHandler* rh, const std::string& str
         } catch (const CConnectionFailed& e) {
             if (fWait && (timeout <= 0 || std::chrono::steady_clock::now() < deadline)) {
                 UninterruptibleSleep(1s);
+            } else if (fWait) {
+                throw CConnectionFailed(strprintf("Timed out waiting for bitfucd.\n%s", e.what()));
             } else {
-                throw CConnectionFailed(strprintf("timeout on transient error: %s", e.what()));
+                throw;
             }
         }
     } while (fWait);
