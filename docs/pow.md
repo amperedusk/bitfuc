@@ -55,7 +55,8 @@ still pass `CheckProofOfWork`. The tighter floor is enforced through
 `GetNextWorkRequired`. `bitfuc-test` is not re-anchored (min-difficulty, NO
 VALUE).
 
-Every node must be rebuilt before the tip reaches 3000 (`docs/launch.md`).
+The live `bitfuc-main` tip is past 3000. A pre-fork binary will split off the
+published chain; rebuild onto current `main` (`docs/launch.md`).
 
 ## What this is not
 

@@ -26,31 +26,30 @@ How to run the public chain: `docs/mainnet.md`. Volunteer P2P list:
 - [x] At least one public peer (`13.140.133.55:17333`, also a fixed seed in current builds)
 - [ ] A second independently operated node (different person / account), then more seeds can follow
 
-## Before height 3000: every node must be rebuilt
+## Height 3000 already happened
 
-Difficulty is re-anchored at height 3000 (`docs/pow.md`). A node still running a
-build from before that change computes the old, easier `nBits` for height 3000
-and will reject the correct block as `bad-diffbits`, and vice versa. That is a
-chain split between old and new builds.
+Difficulty was re-anchored at height 3000 (`docs/pow.md`). The live tip is past
+that height. Current `main` is the post-fork rule.
 
-Do this on **every** machine that runs `bitfucd`, including the relay, while the
-tip is still below 3000:
+A node still running a pre-fork binary computes the old, easier `nBits` from
+height 3000 and will reject the real chain as `bad-diffbits`. Rebuild that
+machine onto current `main` before it mines or serves peers:
 
 ```bash
-git pull
+git fetch
+git reset --hard origin/main
 cmake --build build --target bitfuc
 ./build/bin/bitfuc-cli -datadir="$DATADIR" stop
 ./scripts/mainnet/start-operator.sh
 ```
 
-Do not mine past height 2999 until the relay is also rebuilt. Confirm the fork
-took effect once the tip passes 3000:
+Confirm the node is on the post-fork rule:
 
 ```bash
 ./build/bin/bitfuc-cli -datadir="$DATADIR" getblockchaininfo | grep -E '"bits"|"blocks"'
 ```
 
-`bits` must no longer be `207fffff`.
+`bits` must not be `207fffff`. The volunteer relay is already on current `main`.
 
 ## Never a launch
 
