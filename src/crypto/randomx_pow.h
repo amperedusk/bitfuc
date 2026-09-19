@@ -7,7 +7,7 @@
 
 #include <cstddef>
 
-/** Hash an 80-byte block header with RandomX (light mode, shared VM). Thread-safe. */
+/** Hash an 80-byte block header with RandomX (light mode, per-thread VM). Thread-safe. */
 void RandomXPoW(const unsigned char* header, size_t header_len, unsigned char hash[32]);
 
 #endif // BITCOIN_CRYPTO_RANDOMX_POW_H

@@ -152,7 +152,7 @@ bool BlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, s
                 pow_header.nTime = diskindex.nTime;
                 pow_header.nBits = diskindex.nBits;
                 pow_header.nNonce = diskindex.nNonce;
-                if (!CheckProofOfWork(pow_header, consensusParams)) {
+                if (!CheckProofOfWork(pow_header, consensusParams, pindexNew->nHeight)) {
                     LogError("%s: CheckProofOfWork failed: %s\n", __func__, pindexNew->ToString());
                     return false;
                 }

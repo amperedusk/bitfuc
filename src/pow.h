@@ -34,11 +34,11 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 uint256 GetPoWHash(const CBlockHeader& header, const Consensus::Params&);
 
 /** Check whether a header satisfies proof-of-work (uses GetPoWHash). */
-bool CheckProofOfWork(const CBlockHeader& header, const Consensus::Params&);
+bool CheckProofOfWork(const CBlockHeader& header, const Consensus::Params&, int height = -1);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
-bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
-bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params&);
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&, int height = -1);
+bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params&, int height = -1);
 
 /**
  * Return false if the proof-of-work requirement specified by new_nbits at a
@@ -51,7 +51,8 @@ bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Par
  *
  * Always returns true on networks where min difficulty blocks are allowed,
  * such as regtest/testnet. On ASERT nets (nASERTHalfLife > 0), any compact
- * target accepted by DeriveTarget is permitted (nBits may change every block).
+ * target accepted by DeriveTarget against the floor at `height` is permitted
+ * (nBits may change every block).
  */
 bool PermittedDifficultyTransition(const Consensus::Params& params, int64_t height, uint32_t old_nbits, uint32_t new_nbits);
 

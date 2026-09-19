@@ -12,9 +12,33 @@ mkdir -p "$DATADIR"
 echo "datadir: $DATADIR"
 echo "P2P 17333 is public. RPC is 127.0.0.1 only."
 
+rpc_err() {
+  "$BITFUCCLI" -datadir="$DATADIR" getblockchaininfo 2>&1 >/dev/null || true
+}
+
+wait_rpc() {
+  local i
+  echo "Waiting for the node to finish loading the chain…"
+  for i in $(seq 1 180); do
+    if "$BITFUCCLI" -datadir="$DATADIR" getblockchaininfo >/dev/null 2>&1; then
+      return 0
+    fi
+    if (( i == 1 || i % 10 == 0 )); then
+      echo "still loading… ${i}s"
+    fi
+    sleep 1
+  done
+  echo "error: node did not finish loading in 3 minutes. Leave it, wait, then run this script again." >&2
+  return 1
+}
+
+ERR="$(rpc_err)"
 if "$BITFUCCLI" -datadir="$DATADIR" getblockchaininfo >/dev/null 2>&1; then
   echo "already running"
   "$BITFUCCLI" -datadir="$DATADIR" addnode 13.140.133.55:17333 add >/dev/null 2>&1 || true
+elif echo "$ERR" | grep -q -- '-28'; then
+  echo "already started; block index is still loading."
+  wait_rpc
 else
   "$BITFUCD" -daemon \
     -datadir="$DATADIR" \
@@ -28,12 +52,7 @@ else
     -addnode=13.140.133.55:17333 \
     -listenonion=0 \
     -fallbackfee=0.0002
-  for _ in $(seq 1 80); do
-    if "$BITFUCCLI" -datadir="$DATADIR" getblockchaininfo >/dev/null 2>&1; then
-      break
-    fi
-    sleep 0.25
-  done
+  wait_rpc
 fi
 
 GENESIS="$("$BITFUCCLI" -datadir="$DATADIR" getblockhash 0)"

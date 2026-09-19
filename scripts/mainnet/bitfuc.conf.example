@@ -8,7 +8,7 @@ port=17333
 rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
 dnsseed=0
-fixedseeds=0
 listenonion=0
 fallbackfee=0.0002
+# Current builds already try 13.140.133.55:17333 as a fixed seed.
 # addnode=203.0.113.10:17333

@@ -35,9 +35,9 @@ split (a remainder of 1 bit on the first `cap % blocks` heights so the
 sum of spendable subsidies is exactly 1e9 FUC). After that, only already-mined
 coins exist; 2% of later fees are destroyed.
 
-Difficulty on public nets is **ASERT** (2-day half-life, genesis anchor). See
-`docs/pow.md`. The 2016-block timespan field remains for BIP9 periods and for
-regtest’s inherited DAA.
+Difficulty on public nets is **ASERT** (2-day half-life; from height 3000
+the anchor is block 2999). See `docs/pow.md`. The 2016-block timespan field
+remains for BIP9 periods and for regtest’s inherited DAA.
 
 ## Inflation, then deflation
 

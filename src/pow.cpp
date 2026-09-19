@@ -214,7 +214,7 @@ bool PermittedDifficultyTransition(const Consensus::Params& params, int64_t heig
 {
     if (params.fPowAllowMinDifficultyBlocks) return true;
     if (params.nASERTHalfLife > 0) {
-        return DeriveTarget(new_nbits, params.powLimit).has_value();
+        return DeriveTarget(new_nbits, params.PowLimitAtHeight(static_cast<int>(height))).has_value();
     }
 
     if (height % params.DifficultyAdjustmentInterval() == 0) {
@@ -276,15 +276,15 @@ uint256 GetPoWHash(const CBlockHeader& header, const Consensus::Params& params)
     return hash;
 }
 
-bool CheckProofOfWork(const CBlockHeader& header, const Consensus::Params& params)
+bool CheckProofOfWork(const CBlockHeader& header, const Consensus::Params& params, int height)
 {
-    return CheckProofOfWork(GetPoWHash(header, params), header.nBits, params);
+    return CheckProofOfWork(GetPoWHash(header, params), header.nBits, params, height);
 }
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params, int height)
 {
     if (EnableFuzzDeterminism()) return (hash.data()[31] & 0x80) == 0;
-    return CheckProofOfWorkImpl(hash, nBits, params);
+    return CheckProofOfWorkImpl(hash, nBits, params, height);
 }
 
 std::optional<arith_uint256> DeriveTarget(unsigned int nBits, const uint256 pow_limit)
@@ -302,9 +302,10 @@ std::optional<arith_uint256> DeriveTarget(unsigned int nBits, const uint256 pow_
     return bnTarget;
 }
 
-bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params& params, int height)
 {
-    auto bnTarget{DeriveTarget(nBits, params.powLimit)};
+    const uint256& limit = height >= 0 ? params.PowLimitAtHeight(height) : params.powLimit;
+    auto bnTarget{DeriveTarget(nBits, limit)};
     if (!bnTarget) return false;
 
     if (UintToArith256(hash) > bnTarget)

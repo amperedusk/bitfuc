@@ -11,8 +11,10 @@ seed. This is not a website wallet.
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import re
+import secrets
 import subprocess
 import sys
 import threading
@@ -29,8 +31,16 @@ except (AttributeError, ValueError):
     pass
 
 UI_HTML_PATH = Path(__file__).with_name("wallet_ui.html")
-ADDR_OK = re.compile(r"^(fuc|tfuc|fucrt)1[0-9a-z]{6,}$")
 HASH64 = re.compile(r"^[0-9a-fA-F]{64}$")
+HRP = {"regtest": "fucrt1", "test": "tfuc1", "main": "fuc1"}
+
+
+def addr_ok(address: str, chain: str) -> bool:
+    prefix = HRP[chain]
+    a = address.lower()
+    if not a.startswith(prefix):
+        return False
+    return bool(re.fullmatch(r"[0-9a-z]{6,}", a[len(prefix) :]))
 
 
 def coinbase_blocks_left(confirmations) -> int:
@@ -164,7 +174,7 @@ def lookup(cli: str, extra: list[str], wextra: list[str], query: str) -> dict:
         raise RuntimeError("this node does not know that hash. Click a hash from Recent activity, or use Tip block.") from e
 
 
-def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
+def make_handler(cli: str, extra: list[str], wallet: str, datadir: str, chain: str, csrf: str, hosts: set[str]):
     wextra = extra + [f"-rpcwallet={wallet}"]
     mine_lock = threading.Lock()
     mine_job = {"running": False, "wanted": 0, "done": 0, "error": None}
@@ -282,6 +292,24 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
         def log_message(self, fmt, *args):
             sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
 
+        def _local_ok(self, need_csrf: bool) -> bool:
+            host = (self.headers.get("Host") or "").strip().lower()
+            if host not in hosts:
+                return False
+            origin = (self.headers.get("Origin") or "").strip()
+            if origin:
+                origin_host = urlparse(origin).netloc.lower()
+                if origin_host not in hosts:
+                    return False
+            if not need_csrf:
+                return True
+            got = self.headers.get("X-Bitfuc-CSRF") or ""
+            if hmac.compare_digest(got, csrf):
+                return True
+            q = parse_qs(urlparse(self.path).query)
+            got = (q.get("csrf") or [""])[0]
+            return hmac.compare_digest(got, csrf)
+
         def _send(self, code: int, body, ctype: str = "application/json"):
             data = body if isinstance(body, bytes) else body.encode("utf-8")
             try:
@@ -298,8 +326,20 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
             parsed = urlparse(self.path)
             path = parsed.path
             if path in ("/", "/index.html"):
-                self._send(200, UI_HTML_PATH.read_text(encoding="utf-8"), "text/html; charset=utf-8")
+                if not self._local_ok(need_csrf=False):
+                    self._send(403, json.dumps({"error": "this page only runs on this computer"}))
+                    return
+                html = UI_HTML_PATH.read_text(encoding="utf-8").replace("__BITFUC_CSRF__", csrf)
+                self._send(200, html, "text/html; charset=utf-8")
                 return
+            if path == "/api/backup-download":
+                if not self._local_ok(need_csrf=True):
+                    self._send(403, json.dumps({"error": "missing page token"}))
+                    return
+            elif path.startswith("/api/"):
+                if not self._local_ok(need_csrf=False):
+                    self._send(403, json.dumps({"error": "this page only runs on this computer"}))
+                    return
             if path == "/api/status":
                 try:
                     info = run_json(cli, extra, "getblockchaininfo", timeout=8)
@@ -398,6 +438,9 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
             self._send(404, json.dumps({"error": "not found"}))
 
         def do_POST(self):
+            if not self._local_ok(need_csrf=True):
+                self._send(403, json.dumps({"error": "missing page token"}))
+                return
             length = int(self.headers.get("Content-Length", "0") or 0)
             raw = self.rfile.read(length) if length else b"{}"
             try:
@@ -425,8 +468,8 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str):
                 if self.path == "/api/send":
                     to = str(payload.get("to") or "").strip()
                     amount = str(payload.get("amount") or "").strip()
-                    if not ADDR_OK.match(to):
-                        raise RuntimeError("that is not a BITFUC address (fuc1 / tfuc1 / fucrt1)")
+                    if not addr_ok(to, chain):
+                        raise RuntimeError(f"that is not a {HRP[chain]} address")
                     try:
                         if float(amount) <= 0:
                             raise ValueError
@@ -476,9 +519,19 @@ def main() -> int:
     if args.host not in ("127.0.0.1", "localhost", "::1"):
         raise SystemExit("error: this helper only binds on this computer")
 
+    csrf = secrets.token_urlsafe(32)
+    hosts = {
+        f"{args.host}:{args.port}",
+        f"127.0.0.1:{args.port}",
+        f"localhost:{args.port}",
+        f"[::1]:{args.port}",
+    }
     chain_args = {"regtest": ["-regtest"], "test": ["-testnet"], "main": []}
     extra = [*chain_args[args.chain], f"-datadir={args.datadir}"]
-    httpd = ThreadingHTTPServer((args.host, args.port), make_handler(args.cli, extra, args.wallet, args.datadir))
+    httpd = ThreadingHTTPServer(
+        (args.host, args.port),
+        make_handler(args.cli, extra, args.wallet, args.datadir, args.chain, csrf, hosts),
+    )
     url = f"http://{args.host}:{args.port}/"
     print(f"Open {url}", flush=True)
     print("Wallet UI on this computer only. Close with Ctrl-C.", flush=True)

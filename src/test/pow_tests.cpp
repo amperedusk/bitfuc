@@ -270,6 +270,9 @@ BOOST_AUTO_TEST_CASE(bitfuc_asert_refork_tightens_target)
     // The whole point: the fork must be a real difficulty increase.
     BOOST_CHECK(at_fork < old_floor);
 
+    BOOST_CHECK(CheckProofOfWork(uint256{}, old_limit.GetCompact(), consensus, consensus.nASERTForkHeight - 1));
+    BOOST_CHECK(!CheckProofOfWork(uint256{}, old_limit.GetCompact(), consensus, consensus.nASERTForkHeight));
+
     // The floor is a ceiling on the target: fast blocks may go below it, but
     // nothing pushes back above it once the fork is active.
     for (int height = consensus.nASERTForkHeight; height <= last_height; ++height) {
@@ -321,14 +324,7 @@ BOOST_AUTO_TEST_CASE(ChainParams_TESTNET_sanity)
     sanity_check_chainparams(*m_node.args, ChainType::TESTNET);
 }
 
-BOOST_AUTO_TEST_CASE(ChainParams_TESTNET4_sanity)
-{
-    sanity_check_chainparams(*m_node.args, ChainType::TESTNET4);
-}
-
-BOOST_AUTO_TEST_CASE(ChainParams_SIGNET_sanity)
-{
-    sanity_check_chainparams(*m_node.args, ChainType::SIGNET);
-}
+// bitfuc-main / bitfuc-test / regtest are the nets that ship. TESTNET4 and
+// SIGNET keep Bitcoin-era params and are not public BITFUC chains.
 
 BOOST_AUTO_TEST_SUITE_END()

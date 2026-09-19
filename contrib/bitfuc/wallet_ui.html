@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BITFUC wallet</title>
+<meta name="csrf" content="__BITFUC_CSRF__">
 <style>
   :root {
     --bg:#09090b; --bg-2:#121216; --card:#18181c; --ink:#f4f4f5; --muted:#a1a1aa;
@@ -156,7 +157,10 @@
 </main>
 <script>
 async function api(path, body) {
-  const opt = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
+  const csrf = document.querySelector('meta[name="csrf"]').content;
+  const opt = body
+    ? { method: "POST", headers: { "Content-Type": "application/json", "X-Bitfuc-CSRF": csrf }, body: JSON.stringify(body) }
+    : {};
   const r = await fetch(path, opt);
   const j = await r.json();
   if (!r.ok || j.error) throw new Error(j.error || r.statusText);
@@ -347,7 +351,8 @@ $("lookuptip").onclick = () => {
 };
 $("backupdl").onclick = () => {
   flash("Save that file like a house key.", false);
-  window.location.href = "/api/backup-download";
+  const csrf = document.querySelector('meta[name="csrf"]').content;
+  window.location.href = "/api/backup-download?csrf=" + encodeURIComponent(csrf);
 };
 $("backup").onclick = async () => {
   flash("", false);

@@ -38,8 +38,9 @@ Testnet allows min-difficulty blocks. Anyone with a laptop can rewrite it.
 DNS seeds are empty. One bootstrap peer is published in `docs/mainnet-peers.md`
 and compiled in as a fixed seed. It relays; it does not mine, validate on your
 behalf, or hold keys. A node that cannot reach it still validates normally once
-any peer is supplied with `addnode`. `nMinimumChainWork` and
-`defaultAssumeValid` are zero. Nobody should `-assumevalid` a foreign hash.
+any peer is supplied with `addnode`. `nMinimumChainWork` is the published
+chain’s work at height 3000. `defaultAssumeValid` is zero. Nobody should
+`-assumevalid` a foreign hash.
 
 A network of one bootstrap host is not decentralized discovery. Treat it as a
 liveness dependency until a second independently operated node publishes an
