@@ -41,27 +41,6 @@ regtest; Option C (min-difficulty) on testnet only.**
 
 Implemented in `src/pow.cpp`. Spec: `docs/pow.md`.
 
-### Amended 2026-09-18: the genesis anchor did not work
-
-Genesis `nTime` is one year before the chain started, so ASERT read a ~262,000
-block deficit, asked for an easier target every block, and sat on `powLimit`.
-Difficulty never rose above the genesis value in 2,999 blocks and a block cost
-about two RandomX hashes. Left alone, roughly 270,000 blocks — about 20,500,000
-FUC, 2% of the cap — were mineable in a few hours at no cost.
-
-Fixed by re-anchoring at height 3000 and tightening the floor to `0x1f0fffff`
-(~4,096 hashes per block) instead of regenerating genesis, which would have
-discarded the chain. Two consequences are not hidden:
-
-1. **Heights 1–2999 were mined at no meaningful difficulty**, producing about
-   210,000 FUC (0.021% of the cap) held by the first operator. It is not a
-   genesis premine — D4 still holds, genesis creates nothing — but it is not a
-   competitively mined distribution either, and calling it one would be false.
-2. **The floor still binds when the chain is slow.** A lull lets difficulty fall
-   back to `powLimitPostFork`, so blocks get cheap again in proportion to the
-   lull. That is inherent to a low-hashrate chain, not a bug, and it is the
-   reason more independent miners matter more than any parameter here.
-
 ---
 
 ## D3. Monetary policy

@@ -140,14 +140,8 @@ struct Params {
     int64_t nASERTHalfLife{0};
     /**
      * Height at which ASERT stops anchoring on genesis (0 = never).
-     *
-     * bitfuc-main genesis carries an nTime one year before the chain actually
-     * started producing blocks. Anchored on genesis, ASERT measured a deficit
-     * of ~262,000 blocks against the two-minute schedule, asked for an easier
-     * target every block, and clamped to powLimit forever, so blocks cost no
-     * work. From this height the anchor is the block at nASERTForkHeight - 1
-     * and the floor is powLimitPostFork. Blocks below this height keep the
-     * original rule so existing history stays valid.
+     * From this height the anchor is the block at nASERTForkHeight - 1
+     * and the floor is powLimitPostFork. Blocks below keep the original rule.
      */
     int nASERTForkHeight{0};
     /**

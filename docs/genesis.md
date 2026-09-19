@@ -90,16 +90,3 @@ Check your own build against it:
 ```
 
 A node that prints a different hash is not on this chain.
-
-### Known defect in this genesis
-
-`nTime 1757948400` is 2025-09-15, one year before the chain actually started
-producing blocks on 2026-09-15. The bytes are frozen, so the timestamp stays,
-but it broke difficulty: ASERT measured elapsed time from that anchor, saw a
-~262,000 block deficit against the two-minute schedule, and pinned the target at
-`powLimit` where a block costs about two RandomX hashes. Heights 1 to 2999 were
-mined at that floor, which is why ~210,000 FUC exists for negligible work.
-
-The difficulty rule is re-anchored at height 3000 rather than regenerating
-genesis, so the chain keeps its history. See `docs/pow.md` for the mechanism and
-`docs/open-decisions.md` for what that means for the distribution.

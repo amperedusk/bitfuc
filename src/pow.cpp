@@ -113,8 +113,6 @@ static unsigned int GetNextASERTWorkRequired(const CBlockIndex* pindexLast, cons
     arith_uint256 refTarget;
     if (fForked) {
         // Re-anchor on the last pre-fork block and restart from the new floor.
-        // Its timestamp is real, so nTimeDiff below no longer carries genesis'
-        // one-year head start.
         pindexAnchor = AncestorOrLowest(pindexLast, params.nASERTForkHeight - 1);
         refTarget = powLimit;
     } else {

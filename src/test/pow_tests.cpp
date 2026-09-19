@@ -219,12 +219,7 @@ BOOST_AUTO_TEST_CASE(bitfuc_asert_retargets)
     BOOST_CHECK_GE(t_on.bits(), pow_bits - 1);
 }
 
-/**
- * Genesis-anchored ASERT could not raise difficulty on bitfuc-main, because
- * genesis nTime predates the first mined block by a year and the resulting
- * block deficit pinned the target to powLimit. Past nASERTForkHeight the
- * anchor moves to the last pre-fork block and the floor tightens.
- */
+/** Past nASERTForkHeight the anchor moves to the last pre-fork block and the floor tightens. */
 BOOST_AUTO_TEST_CASE(bitfuc_asert_refork_tightens_target)
 {
     const auto consensus = CreateChainParams(*m_node.args, ChainType::MAIN)->GetConsensus();
@@ -238,8 +233,6 @@ BOOST_AUTO_TEST_CASE(bitfuc_asert_refork_tightens_target)
     BOOST_CHECK_EQUAL(consensus.PowLimitAtHeight(consensus.nASERTForkHeight - 1), consensus.powLimit);
     BOOST_CHECK_EQUAL(consensus.PowLimitAtHeight(consensus.nASERTForkHeight), consensus.powLimitPostFork);
 
-    // Reproduce the bug's shape: genesis a year before the chain moved, then
-    // blocks arriving far faster than the two-minute target.
     const int64_t genesis_time = 1'757'948'400;
     const int64_t launch_time = genesis_time + 365 * 24 * 60 * 60;
 
@@ -264,15 +257,10 @@ BOOST_AUTO_TEST_CASE(bitfuc_asert_refork_tightens_target)
     old_floor.SetCompact(old_limit.GetCompact());
     new_floor.SetCompact(new_limit.GetCompact());
 
-    // Below the fork the old rule still applies, so difficulty never left the
-    // genesis floor. This is the behaviour the existing chain was built under.
     arith_uint256 pre_fork;
     pre_fork.SetCompact(chain.at(consensus.nASERTForkHeight - 1)->nBits);
     BOOST_CHECK_EQUAL(pre_fork, old_floor);
 
-    // At the fork the target drops to the new floor (a hair under it, since
-    // ASERT already sees the first block as early), and keeps falling while
-    // blocks stay fast.
     arith_uint256 at_fork, after_fork;
     at_fork.SetCompact(chain.at(consensus.nASERTForkHeight)->nBits);
     after_fork.SetCompact(chain.at(last_height)->nBits);
