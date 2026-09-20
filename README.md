@@ -1,8 +1,8 @@
-# BITFUC
+# Bitfuc
 
 Ticker: **FUC** · Domain: **[bitfuc.com](https://bitfuc.com)**
 
-BITFUC is a Bitcoin Core **v31.1** derivative with an independent network identity (genesis, magics, ports, addresses, datadir). It is **not** Bitcoin and must not connect to Bitcoin.
+Bitfuc is a Bitcoin Core **v31.1** derivative with an independent network identity (genesis, magics, ports, addresses, datadir). It is **not** Bitcoin and must not connect to Bitcoin.
 
 The public website is a separate brochure. This repository is the node.
 
@@ -51,7 +51,7 @@ Upstream Bitcoin Core build notes live under [doc/](doc/). `cmake --build build 
 - Fake liquidity, volume, users, or price
 - Require the original developer’s server to mine or validate
 - Call a UTXO chain “untraceable”
-- Claim BITFUC is legal everywhere or unregulated
+- Claim Bitfuc is legal everywhere or unregulated
 - Connect to Bitcoin mainnet by accident
 
 ## License
@@ -60,4 +60,4 @@ MIT. This tree includes Bitcoin Core, released under the MIT license. See [COPYI
 
 ## What is Bitcoin Core?
 
-BITFUC is derived from [Bitcoin Core](https://bitcoincore.org), which connects to the Bitcoin peer-to-peer network to download and fully validate blocks and transactions. BITFUC reuses that validation engine on a **separate** chain. See upstream [doc/](doc/) for the inherited architecture.
+Bitfuc is derived from [Bitcoin Core](https://bitcoincore.org), which connects to the Bitcoin peer-to-peer network to download and fully validate blocks and transactions. Bitfuc reuses that validation engine on a **separate** chain. See upstream [doc/](doc/) for the inherited architecture.

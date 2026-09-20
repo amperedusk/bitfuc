@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BITFUC wallet</title>
+<title>Bitfuc wallet</title>
 <meta name="csrf" content="__BITFUC_CSRF__">
 <style>
   :root {
@@ -17,8 +17,7 @@
   * { box-sizing: border-box; }
   body { margin:0; font: 16px/1.5 var(--sans); background:var(--bg); color:var(--ink); }
   main { max-width: 40rem; margin: 0 auto; padding: 1.4rem 1.1rem 3.5rem; }
-  .brand { font-family: var(--serif); font-size: 1.15rem; letter-spacing: .18em; margin: 0 0 .2rem; }
-  .brand span { color: var(--accent); }
+  .brand { font-family: var(--serif); font-size: 1.2rem; letter-spacing: -.01em; margin: 0 0 .2rem; }
   h1 { font-size: 1.55rem; letter-spacing: -.03em; margin: 0 0 1.1rem; display:flex; align-items:baseline; gap:.55rem; flex-wrap:wrap; }
   .net { font-family: var(--sans); font-size: .68rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--line); border-radius: 999px; padding: .18rem .6rem; }
   .grid { display: grid; gap: 12px; }
@@ -75,7 +74,7 @@
 </head>
 <body>
 <main>
-  <p class="brand">BIT<span>FUC</span></p>
+  <p class="brand">Bitfuc</p>
   <h1>Wallet <span class="net" id="netpill">mainnet</span></h1>
   <div id="err"></div>
   <div id="ok"></div>
@@ -234,7 +233,7 @@ async function refresh() {
   const s = await api("/api/status");
   if (s.chain) {
     const main = s.chain === "main";
-    document.title = main ? "BITFUC wallet" : "BITFUC wallet (practice)";
+    document.title = main ? "Bitfuc wallet" : "Bitfuc wallet (practice)";
     $("netpill").textContent = main ? "mainnet" : "practice";
     $("minehint").textContent = main
       ? "Race: ~76 FUC to whoever finds the block."

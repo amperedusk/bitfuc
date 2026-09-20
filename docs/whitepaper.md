@@ -1,10 +1,10 @@
-# BITFUC: An Independently Identified Instance of Nakamoto Electronic Cash
+# Bitfuc: An Independently Identified Instance of Nakamoto Electronic Cash
 
 **Working paper.** Not a prospectus. Not an offering of securities. Not a claim that FUC is money, legal tender, or a store of value.
 
 | | |
 | --- | --- |
-| Protocol name | BITFUC |
+| Protocol name | Bitfuc |
 | Unit name | FUC |
 | Implementation | Bitcoin Core v31.1 derivative (`bitfucd`) |
 | Status | Node, descriptor wallet, local wallet UI, mining, ASERT, agent JSON API |
@@ -12,7 +12,7 @@
 | Affiliation | None. The MIT *license* is not the Massachusetts Institute of Technology. |
 
 **Abstract.**
-A digital bearer instrument that can be transferred without a trusted bookkeeper requires three things that ordinary databases do not provide: a rule for who may create new units, a rule that forbids spending the same unit twice, and a rule for deciding which history is canonical when two conflicting histories are offered. Nakamoto (2008) gave a construction that meets those requirements by combining a UTXO transaction algebra with a most-work chain of proof-of-work headers. BITFUC is not a new consensus theorem. It is an *independently identified instance* of that construction: the same validation kernel, a disjoint network identity, a genesis coinbase that does not enter the UTXO set, and a written policy of zero developer allocation. This paper states the model with the care a mathematician would demand, records the parameters that exist, and marks the parameters that do not. It does **not** argue that BITFUC will displace existing money, that FUC has a price, or that this website is a custodian.
+A digital bearer instrument that can be transferred without a trusted bookkeeper requires three things that ordinary databases do not provide: a rule for who may create new units, a rule that forbids spending the same unit twice, and a rule for deciding which history is canonical when two conflicting histories are offered. Nakamoto (2008) gave a construction that meets those requirements by combining a UTXO transaction algebra with a most-work chain of proof-of-work headers. Bitfuc is not a new consensus theorem. It is an *independently identified instance* of that construction: the same validation kernel, a disjoint network identity, a genesis coinbase that does not enter the UTXO set, and a written policy of zero developer allocation. This paper states the model with the care a mathematician would demand, records the parameters that exist, and marks the parameters that do not. It does **not** argue that Bitfuc will displace existing money, that FUC has a price, or that this website is a custodian.
 
 **Keywords.** electronic cash; UTXO; Nakamoto consensus; proof of work; monetary parameterization; network identity; premine; Bitcoin Core.
 
@@ -26,7 +26,7 @@ Electronic *cash* is the attempt to recover the bearer property of notes without
 
 Chaum (1982) showed that a blind-signature mint can issue unlinkable electronic coins, but the mint remains a trusted issuer and a single point of failure. Dai (1998) and Back (2002) sketched computational cost as a way to issue tokens without a mint. Haber and Stornetta (1991) showed how to time-stamp a document stream with hash pointers. Nakamoto (2008) composed these ideas into a system in which (i) units are unspent transaction outputs, (ii) authorization is a digital signature under a public verification key, and (iii) the canonical history is the chain of headers that represents the most accumulated proof of work.
 
-BITFUC stands in that line. The engineering claim is narrower and, we think, more honest:
+Bitfuc stands in that line. The engineering claim is narrower and, we think, more honest:
 
 1. The validation rules are those of Bitcoin Core 31.1, not a reimplementation of secp256k1 or Script.
 2. The *network* is not Bitcoin. Genesis, magic bytes, ports, address prefixes, and datadir are disjoint.
@@ -39,30 +39,30 @@ A paper that announced “a new money” while those four sentences were false w
 
 We claim only what can be checked from source and from a local node:
 
-- There exists a C++ implementation, derived from Bitcoin Core tag `v31.1`, that validates BITFUC chains.
+- There exists a C++ implementation, derived from Bitcoin Core tag `v31.1`, that validates Bitfuc chains.
 - A local wallet UI and CLI can mine, transfer, and backup keys on a node the operator controls.
 - Address, magic, and port spaces are constructed so as not to collide with Bitcoin’s.
 - Public-net money (D3): 1e9 FUC cap, ~2% of cap per year for 50 years, 2% fee burn, atom = bit.
 
 ### 1.2 What is not claimed
 
-We do not claim that BITFUC is legal tender, that FUC has or will have exchange value, that the system is a substitute for bank deposits, that SHA-256d on a low-hashrate public net is secure against existing ASIC fleets, or that this project is affiliated with any university.
+We do not claim that Bitfuc is legal tender, that FUC has or will have exchange value, that the system is a substitute for bank deposits, that SHA-256d on a low-hashrate public net is secure against existing ASIC fleets, or that this project is affiliated with any university.
 
 ---
 
 ## 2. Related work
 
-**Blind-signature cash.** Chaum (1982, 1988) and Chaum, Fiat, and Naor (1988) give anonymous electronic cash under a mint. The mint is the money. BITFUC has no mint.
+**Blind-signature cash.** Chaum (1982, 1988) and Chaum, Fiat, and Naor (1988) give anonymous electronic cash under a mint. The mint is the money. Bitfuc has no mint.
 
 **Proof of work.** Dwork and Naor (1992) and Back (2002) treat computational puzzles as a scarce resource. Nakamoto uses SHA-256d on a block header as the puzzle.
 
 **Hash-linked time-stamping.** Haber and Stornetta (1991); Bayer, Haber, and Stornetta (1993). The Bitcoin header chain is a public time-stamp of a Merkle root of transactions.
 
-**Bitcoin and its backbone.** Nakamoto (2008); Garay, Kiayias, and Leonardos (2015) formalize common prefix and chain quality under a bounded-delay, honest-majority-of-resource model. BITFUC inherits that model; it does not improve the theorems.
+**Bitcoin and its backbone.** Nakamoto (2008); Garay, Kiayias, and Leonardos (2015) formalize common prefix and chain quality under a bounded-delay, honest-majority-of-resource model. Bitfuc inherits that model; it does not improve the theorems.
 
 **Script and Taproot.** Bitcoin’s script system, SegWit (BIP141), and Taproot (BIP340/341/342) are used as shipped in Core 31.1. We do not propose a new opcode.
 
-**Altcoins as reparameterizations.** Most “new coins” are Bitcoin’s construction with a different genesis and, sometimes, a different puzzle or retarget. Intellectual honesty requires saying so. BITFUC is in that class. Its distinction, if any, is *identification and policy*: a disjoint identity, an unspendable genesis, no DNS seeds, and keys that never live on the website.
+**Altcoins as reparameterizations.** Most “new coins” are Bitcoin’s construction with a different genesis and, sometimes, a different puzzle or retarget. Intellectual honesty requires saying so. Bitfuc is in that class. Its distinction, if any, is *identification and policy*: a disjoint identity, an unspendable genesis, no DNS seeds, and keys that never live on the website.
 
 ---
 
@@ -90,7 +90,7 @@ laws are in bits.
 
 **Assumption 2 (signatures).** Forged witnesses for secp256k1 ECDSA or BIP340 Schnorr, without the corresponding secret, are infeasible.
 
-These are the same assumptions Bitcoin makes. BITFUC adds none and removes none.
+These are the same assumptions Bitcoin makes. Bitfuc adds none and removes none.
 
 ---
 
@@ -108,7 +108,7 @@ Electronic cash is the problem of maintaining a *public* \(V\) that updates with
 
 ### 4.2 Why “alternative money” is a property of use, not of a repository
 
-A protocol can at most supply a *candidate* bearer instrument. Whether it is money is a fact about *acceptance*: do counterparties extinguish debts in it? That fact is empirical and, for BITFUC, presently false. A public chain now exists and produces blocks, but there is no observed price, no market, and no claim of legal-tender status. Sections 5–7 describe the candidate. Section 13 repeats the restriction.
+A protocol can at most supply a *candidate* bearer instrument. Whether it is money is a fact about *acceptance*: do counterparties extinguish debts in it? That fact is empirical and, for Bitfuc, presently false. A public chain now exists and produces blocks, but there is no observed price, no market, and no claim of legal-tender status. Sections 5–7 describe the candidate. Section 13 repeats the restriction.
 
 ---
 
@@ -197,17 +197,17 @@ Bitcoin’s production difficulty adjustment retargets every 2016 blocks toward 
 1. **51% is cheap** on SHA-256d. An adversary who already points ASICs at Bitcoin can, at small opportunity cost, outwork a hobby SHA-256d net, reorganize, and double-spend.
 2. **2016-block retargeting is a poor fit** for a low, jumpy hashrate: a spike mines a large number of blocks at an obsolete target; a subsequent drought stalls the chain.
 
-**D1.** Public BITFUC is an independent RandomX chain, not merge-mined with Bitcoin. `CheckProofOfWork` compares RandomX of the 80-byte header. Block identity stays SHA-256d.
+**D1.** Public Bitfuc is an independent RandomX chain, not merge-mined with Bitcoin. `CheckProofOfWork` compares RandomX of the 80-byte header. Block identity stays SHA-256d.
 
 **D2 (implemented).** Public nets use aserti3-2d (2-minute spacing, 2-day half-life, genesis anchor). Testnet also allows min-difficulty blocks. Regtest keeps Bitcoin’s DAA. See `docs/pow.md`.
 
-**Remark 3.** RandomX is an established CPU-oriented function, not a new hash. Wiring it is a large consensus patch. Until that patch, a public SHA-256d BITFUC net would omit the security model written in `docs/security.md`.
+**Remark 3.** RandomX is an established CPU-oriented function, not a new hash. Wiring it is a large consensus patch. Until that patch, a public SHA-256d Bitfuc net would omit the security model written in `docs/security.md`.
 
 ---
 
 ## 8. Scripts, witnesses, and names of coins
 
-BITFUC uses Bitcoin Core 31.1 script: P2PKH, P2SH, P2WPKH, P2WSH, P2TR, as implemented. Default addresses on BITFUC networks are native SegWit with *distinct* human-readable parts:
+Bitfuc uses Bitcoin Core 31.1 script: P2PKH, P2SH, P2WPKH, P2WSH, P2TR, as implemented. Default addresses on Bitfuc networks are native SegWit with *distinct* human-readable parts:
 
 | Network | HRP | Example form |
 | --- | --- | --- |
@@ -215,7 +215,7 @@ BITFUC uses Bitcoin Core 31.1 script: P2PKH, P2SH, P2WPKH, P2WSH, P2TR, as imple
 | bitfuc-test | `tfuc` | `tfuc1…` |
 | bitfuc-regtest | `fucrt` | `fucrt1…` |
 
-Bitcoin uses `bc`, `tb`, `bcrt`. Base58 version bytes and extended-key version bytes are likewise disjoint. The point is *non-confusion*: a BITFUC string must not be a valid Bitcoin payment destination under Bitcoin Core, and conversely.
+Bitcoin uses `bc`, `tb`, `bcrt`. Base58 version bytes and extended-key version bytes are likewise disjoint. The point is *non-confusion*: a Bitfuc string must not be a valid Bitcoin payment destination under Bitcoin Core, and conversely.
 
 **Definition 15 (network identity).** A network identity is a tuple
 
@@ -280,7 +280,7 @@ Units, if a public chain is launched under this policy, enter \(U\) only as matu
 
 ---
 
-## 10. BITFUC as a specified instance
+## 10. Bitfuc as a specified instance
 
 ### 10.1 Networks
 
@@ -304,7 +304,7 @@ Bitcoin’s 8333 / 18333 / 18444 are unused.
 
 ### 10.3 Genesis (regtest, frozen for local use)
 
-Reproduce with `python3 contrib/bitfuc/genesis.py`. The generator first reproduces Bitcoin’s published genesis, then emits BITFUC headers. Bitcoin’s coinbase *text* is not reused.
+Reproduce with `python3 contrib/bitfuc/genesis.py`. The generator first reproduces Bitcoin’s published genesis, then emits Bitfuc headers. Bitcoin’s coinbase *text* is not reused.
 
 | Field | bitfuc-regtest |
 | --- | --- |
@@ -323,17 +323,17 @@ DNS seeds are empty. One bootstrap peer is published in `docs/mainnet-peers.md` 
 
 It is also an honest single point of bootstrap. Until a second independently operated node publishes an address, discovery depends on one host, and this paper does not claim discovery is decentralized. Adding independent operators is the fix; removing the seed without replacing it only makes first contact harder.
 
-Checkpoints, `assumevalid`, and AssumeUTXO snapshots contain **no Bitcoin state**. Importing Bitcoin’s assumevalid would cause a BITFUC node to skip validation toward the wrong coin.
+Checkpoints, `assumevalid`, and AssumeUTXO snapshots contain **no Bitcoin state**. Importing Bitcoin’s assumevalid would cause a Bitfuc node to skip validation toward the wrong coin.
 
 ### 10.5 Mining interface
 
-The node exposes `getblocktemplate` and `submitblock`. On regtest, `generatetoaddress` is the supported laboratory miner. Compatibility with Bitcoin *mining software* requires that the software speak BITFUC identity; pointing a Bitcoin miner at `bitfucd` without that is not a BITFUC block.
+The node exposes `getblocktemplate` and `submitblock`. On regtest, `generatetoaddress` is the supported laboratory miner. Compatibility with Bitcoin *mining software* requires that the software speak Bitfuc identity; pointing a Bitcoin miner at `bitfucd` without that is not a Bitfuc block.
 
 ---
 
 ## 11. Implementation
 
-The implementation is a git history starting from the official Bitcoin Core tag `v31.1`, plus BITFUC identity commits. Consensus-critical code paths (libsecp256k1, script, UTXO, mempool, reorg) are not rewritten for branding.
+The implementation is a git history starting from the official Bitcoin Core tag `v31.1`, plus Bitfuc identity commits. Consensus-critical code paths (libsecp256k1, script, UTXO, mempool, reorg) are not rewritten for branding.
 
 The website is static HTML. It is not a validator. It does not display a tip. An explorer that is not bound to a live `bitfucd` RPC is, in the sense of this paper, a fiction.
 
@@ -347,7 +347,7 @@ We separate *local* security from *public* security.
 
 **Local.** On the starter chain, difficulty is trivial so a laptop can mine. An attacker on the same machine can rewrite that chain. That is the point of a laboratory parameter.
 
-**Public.** The *rules* are Bitcoin Core 31.1’s: signatures, script, UTXO, most-work. What is not equal to Bitcoin is the *cost of attacking this chain*. Nakamoto security is an honest majority of the puzzle resource on *this* network, plus enough independent full nodes. Bitcoin’s SHA-256d hashrate is enormous. A new coin does not inherit that. That is why public BITFUC is specified as independent RandomX (not merge-mined) and ASERT, not “as hard as Bitcoin because the C++ looks similar.” See `docs/pow.md`.
+**Public.** The *rules* are Bitcoin Core 31.1’s: signatures, script, UTXO, most-work. What is not equal to Bitcoin is the *cost of attacking this chain*. Nakamoto security is an honest majority of the puzzle resource on *this* network, plus enough independent full nodes. Bitcoin’s SHA-256d hashrate is enormous. A new coin does not inherit that. That is why public Bitfuc is specified as independent RandomX (not merge-mined) and ASERT, not “as hard as Bitcoin because the C++ looks similar.” See `docs/pow.md`.
 
 **Privacy.** A UTXO graph is not “untraceable.” Cluster analysis applies. We do not claim otherwise.
 
@@ -359,10 +359,10 @@ We separate *local* security from *public* security.
 
 The following sentences are **false** if asserted as theorems about the world in 2026:
 
-1. “BITFUC is money.”
+1. “Bitfuc is money.”
 2. “FUC has a market price.”
-3. “BITFUC is a safe store of value.”
-4. “BITFUC is as costly to 51% as Bitcoin.” (Same kernel. Different work pointed at this genesis.)
+3. “Bitfuc is a safe store of value.”
+4. “Bitfuc is as costly to 51% as Bitcoin.” (Same kernel. Different work pointed at this genesis.)
 5. “This website holds your keys.”
 6. “This paper is an offering or a solicitation.”
 7. “The authors are affiliated with MIT or any central bank.”
@@ -387,7 +387,7 @@ Still engineering, not marketing:
 
 ## 15. Conclusion
 
-Nakamoto electronic cash is a conservative UTXO rewrite system whose canonical history is the most-work header chain. BITFUC is that system, identified so that it cannot be mistaken for Bitcoin, allocated so that genesis creates no developer coins, and operated so that keys stay with the node’s owner.
+Nakamoto electronic cash is a conservative UTXO rewrite system whose canonical history is the most-work header chain. Bitfuc is that system, identified so that it cannot be mistaken for Bitcoin, allocated so that genesis creates no developer coins, and operated so that keys stay with the node’s owner.
 
 That is a complete description. It is less exciting than a monetary manifesto and more accurate.
 
@@ -414,7 +414,7 @@ That starts **bitfuc-main**. `./scripts/regtest/acceptance.sh` is a local dummy 
 
 | Field | Value |
 | --- | --- |
-| Title | BITFUC: An Independently Identified Instance of Nakamoto Electronic Cash |
+| Title | Bitfuc: An Independently Identified Instance of Nakamoto Electronic Cash |
 | Date | 2026-09-18 |
 | Version | 0.2 (working paper) |
 | Canonical file | `docs/whitepaper.md` |

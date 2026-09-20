@@ -1,6 +1,6 @@
 # Get started (humans)
 
-This site is not a wallet. You copy BITFUC onto **your** computer, build the
+This site is not a wallet. You copy Bitfuc onto **your** computer, build the
 node, then open a local page that talks only to that node.
 
 ```bash
