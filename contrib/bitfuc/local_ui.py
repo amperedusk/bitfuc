@@ -273,14 +273,33 @@ def make_handler(cli: str, extra: list[str], wallet: str, datadir: str, chain: s
             money_cache["scanning"] = False
 
     def mine_worker(n: int, addr: str) -> None:
+        # Keep the RPC open: default HTTP timeout is too short for public-net RandomX.
+        mine_extra = [*wextra, "-rpcclienttimeout=0"]
         try:
-            left = n
-            while left > 0:
-                chunk = min(5, left)
-                run_cli(cli, wextra, "generatetoaddress", str(chunk), addr, timeout=None)
-                left -= chunk
-                with mine_lock:
-                    mine_job["done"] = n - left
+            found = 0
+            while found < n:
+                try:
+                    raw = run_cli(
+                        cli,
+                        mine_extra,
+                        "generatetoaddress",
+                        "1",
+                        addr,
+                        "1000000000",
+                        timeout=None,
+                    )
+                except RuntimeError as e:
+                    msg = str(e)
+                    if "not accepted" in msg.lower() or "busy" in msg.lower():
+                        continue
+                    raise
+                hashes = json.loads(raw) if raw else []
+                if not isinstance(hashes, list):
+                    hashes = []
+                if hashes:
+                    found += len(hashes)
+                    with mine_lock:
+                        mine_job["done"] = found
         except Exception as e:  # noqa: BLE001 — surface RPC text in the UI
             with mine_lock:
                 mine_job["error"] = str(e)

@@ -281,7 +281,7 @@ async function refresh() {
   document.querySelectorAll("button.mine").forEach(el => { el.disabled = !!mining.running; });
   const pill = $("minepill");
   if (mining.running) {
-    pill.textContent = "Mining " + (mining.done || 0) + "/" + mining.wanted;
+    pill.textContent = "Mining " + (mining.done || 0) + "/" + mining.wanted + " (can take a while)";
     pill.classList.add("on");
   } else {
     pill.textContent = "Idle";
@@ -329,7 +329,7 @@ document.querySelectorAll("button.mine").forEach(btn => {
     flash("", false);
     try {
       await api("/api/mine", { n: Number(btn.dataset.n) });
-      flash("Mining in the background. You can still send.");
+      flash("Mining in the background. A block can take much longer than two minutes if others have more CPU.");
       await refresh();
     } catch (e) { flash(e.message, true); }
   };
